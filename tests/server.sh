@@ -6,7 +6,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 PID_FILE="bin/server.pid"
-LOG_FILE="server.log"
+LOG_FILE="bin/server.log"
 BIN_FILE="bin/server"
 PORT="8080"
 
