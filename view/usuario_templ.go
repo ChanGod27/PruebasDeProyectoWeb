@@ -289,8 +289,8 @@ func LoginPage(emailPrellenado string, errorMsg string) templ.Component {
 // =============================================================================
 // COMPONENTE: AVISO PROXIMA ENTREGA (TP6)
 // =============================================================================
-// Muestra el aviso solicitado cuando el usuario inicia sesión y redirige
-// hacia las funcionalidades avanzadas (calendario o materias).
+// Muestra únicamente el mensaje solicitado y el botón para volver a la página
+// anterior al acceder a las funcionalidades de calendario o materias.
 // =============================================================================
 func TP6Aviso(usuarioNombre string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -321,26 +321,13 @@ func TP6Aviso(usuarioNombre string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"tp6-card\"><div class=\"tp6-icon-wrap\"><i class=\"fa-solid fa-calendar-check tp6-icon\"></i></div><h2 class=\"tp6-title\">¡Sesión Iniciada con Éxito!</h2><p class=\"tp6-subtitle\">Bienvenido/a, <strong style=\"color: var(--color-primary);\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(usuarioNombre)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `view/usuario.templ`, Line: 159, Col: 101}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</strong></p><div class=\"tp6-box-notice\"><i class=\"fa-solid fa-circle-info\"></i><p>Esta opción se implementará en la entrega del próximo TP6.</p></div><div style=\"margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;\"><a href=\"/usuarios\" class=\"btn btn-outline\"><i class=\"fa-solid fa-users\"></i> <span>Volver a Usuarios</span></a></div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"tp6-card\"><div class=\"tp6-icon-wrap\"><i class=\"fa-solid fa-person-digging tp6-icon\"></i></div><h1 class=\"tp6-title-big\">Esta funcionalidad se implementará en la próxima entrega TP6</h1><div style=\"margin-top: 2rem; display: flex; justify-content: center;\"><button type=\"button\" onclick=\"if (history.length > 1) { history.back(); } else { window.location.href='/usuarios'; }\" class=\"btn btn-primary\" style=\"padding: 0.85rem 1.75rem; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;\"><i class=\"fa-solid fa-arrow-left\"></i> <span>Volver a la página anterior</span></button></div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = LayoutBase("go_tasks - Bienvenido", usuarioNombre).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = LayoutBase("go_tasks - Próxima Entrega TP6", usuarioNombre).Render(templ.WithChildren(ctx, templ_7745c5c3_Var16), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

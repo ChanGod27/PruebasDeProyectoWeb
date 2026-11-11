@@ -1300,6 +1300,14 @@ body {
   margin-bottom: 0.5rem;
 }
 
+.tp6-title-big {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-text-white);
+  margin: 1.25rem 0 1.75rem;
+}
+
 .tp6-subtitle {
   font-size: 0.95rem;
   color: var(--color-text-muted);
@@ -1362,6 +1370,10 @@ body {
 
   .form-footer .btn {
     width: 100%;
+  }
+
+  .tp6-title-big {
+    font-size: 1.35rem;
   }
 }
 

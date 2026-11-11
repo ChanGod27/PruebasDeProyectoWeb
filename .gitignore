@@ -3,3 +3,5 @@
 /db/models.go
 /db/*.sql.go
 /bin
+*.log
+server.log
