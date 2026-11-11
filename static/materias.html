@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>go_tasks - Materias y Tablero</title>
+  <!-- Google Fonts: Caveat & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Hoja de estilos CSS nativa -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <a href="index.html" class="brand-logo brand-glow">go_tasks</a>
+        <span class="user-badge">
+          <i class="fa-solid fa-circle-user"></i>
+          <span>Carlos (Carlos C.)</span>
+        </span>
+      </div>
+
+      <!-- Pestañas de Navegación entre Vistas -->
+      <nav class="nav-tabs">
+        <a href="usuarios.html" class="nav-tab">
+          <i class="fa-solid fa-users"></i>
+          <span>Usuarios</span>
+        </a>
+        <a href="calendario.html" class="nav-tab">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendario</span>
+        </a>
+        <a href="materias.html" class="nav-tab active">
+          <i class="fa-solid fa-table-columns"></i>
+          <span>Materias</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal de la Vista -->
+  <main class="main-wrapper">
+    <!-- Encabezado de la Sección -->
+    <section class="page-header">
+      <h1 class="page-title brand-glow">go_tasks Materias</h1>
+    </section>
+
+    <!-- Barra de Acciones -->
+    <div class="action-bar">
+      <!-- Enlace que activa el modal nativo en CSS mediante :target -->
+      <a href="#task-modal" class="btn btn-success">
+        <i class="fa-solid fa-plus"></i>
+        <span>Añadir una tarea</span>
+      </a>
+    </div>
+
+    <!-- Tablero Kanban de Materias y Tareas -->
+    <section class="kanban-board">
+      <div class="kanban-columns">
+
+        <!-- ========================================== -->
+        <!-- COLUMNA 1: Mis tareas                      -->
+        <!-- ========================================== -->
+        <div class="kanban-col">
+          <div class="kanban-col-top">
+            <!-- Encabezado de Columna -->
+            <div class="kanban-col-header">
+              <span class="kanban-col-title">
+                <i class="fa-solid fa-folder-open col-icon-amber"></i>
+                <span>Mis tareas</span>
+              </span>
+              <i class="fa-solid fa-ellipsis-vertical" style="color: var(--color-text-dim); font-size: 0.75rem;"></i>
+            </div>
+
+            <!-- Lista de Tarjetas de Tarea -->
+            <div class="kanban-task-list">
+              <!-- Tarjeta de Tarea 1 -->
+              <article class="task-card">
+                <div class="task-card-header">
+                  <div class="task-name-group">
+                    <span class="task-red-ring"></span>
+                    <h3 class="task-title">Tarea 1</h3>
+                  </div>
+                  <span class="badge badge-amber">Mañana</span>
+                </div>
+
+                <div class="task-checklist">
+                  <label class="checklist-label">
+                    <input type="checkbox" class="checklist-input">
+                    <span>Hora 1: Intervalo de duración</span>
+                  </label>
+                  <label class="checklist-label">
+                    <input type="checkbox" class="checklist-input">
+                    <span>Hora 2</span>
+                  </label>
+                  <label class="checklist-label">
+                    <input type="checkbox" class="checklist-input">
+                    <span>Hora 3</span>
+                  </label>
+                </div>
+              </article>
+
+              <!-- Tarjeta de Tarea 2 (Borde Destacado) -->
+              <article class="task-card highlight-emerald">
+                <div class="task-card-header">
+                  <div class="task-name-group">
+                    <span class="task-red-ring"></span>
+                    <h3 class="task-title">Tarea 2</h3>
+                  </div>
+                  <span class="badge badge-red">Ayer</span>
+                </div>
+
+                <div class="task-checklist">
+                  <label class="checklist-label">
+                    <input type="checkbox" class="checklist-input">
+                    <span>Hora 2</span>
+                  </label>
+                  <label class="checklist-label">
+                    <input type="checkbox" class="checklist-input">
+                    <span>Hora 1</span>
+                  </label>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Sección de Tareas Completadas (Acordeón HTML5 Nativo) -->
+          <details class="completed-accordion">
+            <summary class="completed-summary">
+              <span class="summary-left">
+                <i class="fa-solid fa-play col-icon-amber"></i>
+                <span>Completadas (2)</span>
+              </span>
+              <span class="summary-pill">Ver</span>
+            </summary>
+            <div class="completed-list">
+              <p class="completed-item">✔ Tarea previa: Investigación inicial</p>
+              <p class="completed-item">✔ Lectura de enunciado TP</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- COLUMNA 2: Materia 2                       -->
+        <!-- ========================================== -->
+        <div class="kanban-col">
+          <div class="kanban-col-top">
+            <!-- Encabezado de Columna -->
+            <div class="kanban-col-header">
+              <span class="kanban-col-title">
+                <i class="fa-solid fa-book-bookmark col-icon-blue"></i>
+                <span>Materia 2</span>
+              </span>
+              <i class="fa-solid fa-ellipsis-vertical" style="color: var(--color-text-dim); font-size: 0.75rem;"></i>
+            </div>
+
+            <!-- Estado Vacío -->
+            <div class="kanban-empty-state">
+              <span class="empty-icon">📋</span>
+              <p class="empty-title">Aún no hay tareas</p>
+              <p class="empty-desc">Añade tareas pendientes para darles seguimiento</p>
+            </div>
+          </div>
+
+          <!-- Sección de Tareas Completadas -->
+          <details class="completed-accordion">
+            <summary class="completed-summary">
+              <span class="summary-left">
+                <i class="fa-solid fa-play col-icon-blue"></i>
+                <span>Completadas (2)</span>
+              </span>
+              <span class="summary-pill">Ver</span>
+            </summary>
+            <div class="completed-list">
+              <p class="completed-item">✔ Resumen Capítulo 1</p>
+              <p class="completed-item">✔ Práctico de algoritmos</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- COLUMNA 3: Materia 3                       -->
+        <!-- ========================================== -->
+        <div class="kanban-col">
+          <div class="kanban-col-top">
+            <!-- Encabezado de Columna -->
+            <div class="kanban-col-header">
+              <span class="kanban-col-title">
+                <i class="fa-solid fa-book-bookmark col-icon-purple"></i>
+                <span>Materia 3</span>
+              </span>
+              <i class="fa-solid fa-ellipsis-vertical" style="color: var(--color-text-dim); font-size: 0.75rem;"></i>
+            </div>
+
+            <!-- Estado Vacío -->
+            <div class="kanban-empty-state">
+              <span class="empty-icon">📋</span>
+              <p class="empty-title">Aún no hay tareas</p>
+              <p class="empty-desc">Añade tareas pendientes para darles seguimiento</p>
+            </div>
+          </div>
+
+          <!-- Sección de Tareas Completadas -->
+          <details class="completed-accordion">
+            <summary class="completed-summary">
+              <span class="summary-left">
+                <i class="fa-solid fa-play col-icon-purple"></i>
+                <span>Completadas (2)</span>
+              </span>
+              <span class="summary-pill">Ver</span>
+            </summary>
+            <div class="completed-list">
+              <p class="completed-item">✔ Cuestionario de Arquitectura</p>
+              <p class="completed-item">✔ Configuración de entorno</p>
+            </div>
+          </details>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: FORMULARIO AÑADIR NUEVA TAREA       -->
+  <!-- Abre con :target (CSS Puro sin JS)         -->
+  <!-- ========================================== -->
+  <div id="task-modal" class="modal">
+    <div class="modal-content">
+      <!-- Botón de Cierre (vuelve al estado sin hash) -->
+      <a href="#" class="modal-close-btn" title="Cerrar modal">
+        <i class="fa-solid fa-xmark"></i>
+      </a>
+
+      <!-- Cabecera del Modal -->
+      <div class="modal-header">
+        <i class="fa-solid fa-square-plus"></i>
+        <span>Añadir Nueva Tarea</span>
+      </div>
+
+      <!-- Formulario para Crear Tarea -->
+      <form action="/tareas" method="POST" class="modal-form">
+        <!-- Título -->
+        <div class="form-group">
+          <label for="task-title" class="form-label">
+            Título de la Tarea <span class="req-star">*</span>
+          </label>
+          <input type="text" id="task-title" name="titulo" required placeholder="Ej. Tarea 3: Ejercicios de Redes" class="form-control">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <!-- Columna / Materia -->
+          <div class="form-group">
+            <label for="task-column" class="form-label">Columna / Materia</label>
+            <select id="task-column" name="id_lista" class="form-control">
+              <option value="1">Mis tareas</option>
+              <option value="2">Materia 2</option>
+              <option value="3">Materia 3</option>
+            </select>
+          </div>
+
+          <!-- Estado / Plazo -->
+          <div class="form-group">
+            <label for="task-urgency" class="form-label">Estado / Plazo</label>
+            <select id="task-urgency" name="plazo" class="form-control">
+              <option value="Hoy">Hoy</option>
+              <option value="Mañana" selected>Mañana</option>
+              <option value="Ayer">Ayer (Vencida)</option>
+              <option value="Próxima semana">Próxima semana</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Intervalos / Horas planificadas -->
+        <div class="form-group">
+          <label for="task-intervals" class="form-label">Intervalos / Horas planificadas</label>
+          <input type="text" id="task-intervals" name="intervalos" placeholder="Hora 1, Hora 2 (separadas por comas)" class="form-control">
+          <span style="font-size: 0.7rem; color: var(--color-text-dim); margin-top: 0.25rem;">
+            Escribe los bloques o intervalos que llevará esta tarea.
+          </span>
+        </div>
+
+        <!-- Botones de Acción del Modal -->
+        <div class="modal-footer">
+          <a href="#" class="btn btn-outline" style="font-size: 0.75rem; padding: 0.5rem 1rem;">Cancelar</a>
+          <button type="submit" class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 1.15rem;">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Guardar Tarea</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
+

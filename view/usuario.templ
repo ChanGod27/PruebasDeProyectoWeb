@@ -1,0 +1,174 @@
+package view
+
+import (
+	"fmt"
+	"ServidorEntregable/db"
+)
+
+// =============================================================================
+// COMPONENTE: LISTA DE USUARIOS (usuario.templ)
+// =============================================================================
+// Renderiza el listado de usuarios existentes en la base de datos o un aviso
+// informativo cuando aún no se ha creado ninguno.
+// =============================================================================
+
+templ ListaUsuarios(usuarios []db.Usuario, usuarioActivoID int32) {
+	if len(usuarios) == 0 {
+		<!-- Aviso visual cuando la base de datos no tiene usuarios creados -->
+		<div class="empty-state-card">
+			<i class="fa-solid fa-users-slash empty-state-icon"></i>
+			<h3 class="empty-state-title">No se han creado usuarios</h3>
+			<p class="empty-state-desc">
+				Actualmente no hay ningún usuario registrado en la base de datos.
+				Haz clic en el botón de abajo para crear tu primer usuario.
+			</p>
+		</div>
+	} else {
+		<!-- Listado de tarjetas de usuario existentes -->
+		<section class="users-container">
+			for _, u := range usuarios {
+				<article class={ "user-card", templ.KV("active", u.IDUsuario == usuarioActivoID) }>
+					<!-- Etiqueta con el ID del usuario -->
+					<div class="user-id-badge">
+						<i class="fa-solid fa-user"></i>
+						<span>Usuario #{ fmt.Sprint(u.IDUsuario) }</span>
+					</div>
+
+					<!-- Datos del Usuario: Nombre, Apellido y Email -->
+					<div class="user-card-body">
+						<div class="user-info-box">
+							<span class="avatar-dot dot-blue"></span>
+							<div class="user-text-details">
+								<p class="user-name">{ u.Nombre } { string([]rune(u.Apellido)[0:1]) }.</p>
+								<p class="user-email">{ u.Email }</p>
+							</div>
+						</div>
+
+						<div class="user-metadata-box">
+							<p class="meta-row">
+								<span class="meta-label">Nombre:</span>
+								<span class="meta-value">{ u.Nombre }</span>
+							</p>
+							<p class="meta-row">
+								<span class="meta-label">Apellido:</span>
+								<span class="meta-value">{ u.Apellido }</span>
+							</p>
+						</div>
+					</div>
+
+					<!-- Botón de Iniciar Sesión / Sesión Activa -->
+					if u.IDUsuario == usuarioActivoID {
+						<button type="button" class="btn btn-active-session" title="Este usuario tiene la sesión iniciada actualmente">
+							<i class="fa-solid fa-circle-check"></i>
+							<span>Sesión Activa</span>
+						</button>
+					} else {
+						<a href={ templ.URL(fmt.Sprintf("/login?email=%s", u.Email)) } class="btn btn-outline" title="Iniciar sesión con este usuario">
+							<i class="fa-solid fa-arrow-right-to-bracket"></i>
+							<span>Iniciar Sesión</span>
+						</a>
+					}
+				</article>
+			}
+		</section>
+	}
+}
+
+// =============================================================================
+// COMPONENTE: PÁGINA DE LOGIN (Inicio de sesión para verificar contraseña)
+// =============================================================================
+templ LoginPage(emailPrellenado string, errorMsg string) {
+	@LayoutBase("go_tasks - Iniciar Sesión", "") {
+		<div class="login-wrapper">
+			<div class="login-card">
+				<!-- Cabecera del formulario de login -->
+				<header class="login-header">
+					<h1 class="login-logo brand-glow">go_tasks</h1>
+					<p class="login-subtitle">Ingresa la contraseña del usuario para acceder</p>
+				</header>
+
+				if errorMsg != "" {
+					<div class="alert-error">
+						<i class="fa-solid fa-circle-exclamation"></i>
+						<span>{ errorMsg }</span>
+					</div>
+				}
+
+				<!-- Formulario tradicional hacia /login -->
+				<form action="/login" method="POST" class="login-form">
+					<div class="form-group">
+						<label for="login-email" class="form-label">
+							Correo Electrónico <span class="req-star">*</span>
+						</label>
+						<input
+							type="email"
+							id="login-email"
+							name="email"
+							value={ emailPrellenado }
+							required
+							placeholder="correo@ejemplo.com"
+							class="form-control"
+						/>
+					</div>
+
+					<div class="form-group">
+						<label for="login-password" class="form-label">
+							Contraseña <span class="req-star">*</span>
+						</label>
+						<input
+							type="password"
+							id="login-password"
+							name="contrasena"
+							required
+							placeholder="••••••••••••"
+							class="form-control"
+						/>
+					</div>
+
+					<button type="submit" class="btn btn-primary login-btn-submit">
+						<i class="fa-solid fa-arrow-right-to-bracket"></i>
+						<span>Ingresar a go_tasks</span>
+					</button>
+				</form>
+
+				<footer class="login-footer">
+					<p>
+						<a href="/usuarios" class="login-link">
+							<i class="fa-solid fa-arrow-left"></i> Volver a la lista de usuarios
+						</a>
+					</p>
+				</footer>
+			</div>
+		</div>
+	}
+}
+
+// =============================================================================
+// COMPONENTE: AVISO PROXIMA ENTREGA (TP6)
+// =============================================================================
+// Muestra el aviso solicitado cuando el usuario inicia sesión y redirige
+// hacia las funcionalidades avanzadas (calendario o materias).
+// =============================================================================
+templ TP6Aviso(usuarioNombre string) {
+	@LayoutBase("go_tasks - Bienvenido", usuarioNombre) {
+		<div class="tp6-card">
+			<div class="tp6-icon-wrap">
+				<i class="fa-solid fa-calendar-check tp6-icon"></i>
+			</div>
+			<h2 class="tp6-title">¡Sesión Iniciada con Éxito!</h2>
+			<p class="tp6-subtitle">Bienvenido/a, <strong style="color: var(--color-primary);">{ usuarioNombre }</strong></p>
+			
+			<div class="tp6-box-notice">
+				<i class="fa-solid fa-circle-info"></i>
+				<p>Esta opción se implementará en la entrega del próximo TP6.</p>
+			</div>
+
+			<div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+				<a href="/usuarios" class="btn btn-outline">
+					<i class="fa-solid fa-users"></i>
+					<span>Volver a Usuarios</span>
+				</a>
+			</div>
+		</div>
+	}
+}

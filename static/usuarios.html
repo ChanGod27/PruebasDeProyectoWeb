@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>go_tasks - Usuarios y Acceso</title>
+  <!-- Google Fonts: Caveat & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Hoja de estilos CSS nativa -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <a href="index.html" class="brand-logo brand-glow">go_tasks</a>
+        <span class="user-badge">
+          <i class="fa-solid fa-circle-user"></i>
+          <span>Carlos (Carlos C.)</span>
+        </span>
+      </div>
+
+      <!-- Pestañas de Navegación entre Vistas -->
+      <nav class="nav-tabs">
+        <a href="usuarios.html" class="nav-tab active">
+          <i class="fa-solid fa-users"></i>
+          <span>Usuarios</span>
+        </a>
+        <a href="calendario.html" class="nav-tab">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendario</span>
+        </a>
+        <a href="materias.html" class="nav-tab">
+          <i class="fa-solid fa-table-columns"></i>
+          <span>Materias</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal de la Vista -->
+  <main class="main-wrapper">
+    <!-- Encabezado de la Sección -->
+    <section class="page-header">
+      <h1 class="page-title brand-glow">go_tasks</h1>
+      <div class="page-subtitle">
+        <i class="fa-solid fa-users"></i>
+        <span>Seleccionar Usuario para Iniciar Sesión</span>
+      </div>
+    </section>
+
+    <!-- Lista de Usuarios Existentes -->
+    <section class="users-container">
+      <!-- Tarjeta Usuario 3 (Sesión Activa) -->
+      <article class="user-card active">
+        <div class="user-id-badge">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuario #3</span>
+        </div>
+
+        <div class="user-card-body">
+          <div class="user-info-box">
+            <span class="avatar-dot dot-blue"></span>
+            <div class="user-text-details">
+              <p class="user-name">Carlos C.</p>
+              <p class="user-email">carlos@exactas.unicen.edu.ar</p>
+            </div>
+          </div>
+
+          <div class="user-metadata-box">
+            <p class="meta-row"><span class="meta-label">Nombre:</span> <span class="meta-value">Carlos</span></p>
+            <p class="meta-row"><span class="meta-label">Apellido:</span> <span class="meta-value">Chang</span></p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-active-session">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>Sesión Activa</span>
+        </button>
+      </article>
+
+      <!-- Tarjeta Usuario 2 -->
+      <article class="user-card">
+        <div class="user-id-badge">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuario #2</span>
+        </div>
+
+        <div class="user-card-body">
+          <div class="user-info-box">
+            <span class="avatar-dot dot-green"></span>
+            <div class="user-text-details">
+              <p class="user-name">Hermes T.</p>
+              <p class="user-email">hermes@exactas.unicen.edu.ar</p>
+            </div>
+          </div>
+
+          <div class="user-metadata-box">
+            <p class="meta-row"><span class="meta-label">Nombre:</span> <span class="meta-value">Hermes</span></p>
+            <p class="meta-row"><span class="meta-label">Apellido:</span> <span class="meta-value">Truelsegaard</span></p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>[ Iniciar Sesión ]</span>
+        </button>
+      </article>
+
+      <!-- Tarjeta Usuario 1 -->
+      <article class="user-card">
+        <div class="user-id-badge">
+          <i class="fa-solid fa-user"></i>
+          <span>Usuario #1</span>
+        </div>
+
+        <div class="user-card-body">
+          <div class="user-info-box">
+            <span class="avatar-dot dot-red"></span>
+            <div class="user-text-details">
+              <p class="user-name">Alfredo G.</p>
+              <p class="user-email">alfredo@docentes.unicen.edu.ar</p>
+            </div>
+          </div>
+
+          <div class="user-metadata-box">
+            <p class="meta-row"><span class="meta-label">Nombre:</span> <span class="meta-value">Alfredo</span></p>
+            <p class="meta-row"><span class="meta-label">Apellido:</span> <span class="meta-value">G.</span></p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-outline">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>[ Iniciar Sesión ]</span>
+        </button>
+      </article>
+    </section>
+
+    <!-- Formulario para Crear Nuevo Usuario -->
+    <section class="form-card">
+      <div class="form-header">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Crear Nuevo Usuario</span>
+      </div>
+
+      <form action="/usuarios" method="POST">
+        <div class="form-grid-4">
+          <!-- Campo Nombre -->
+          <div class="form-group">
+            <label for="user-name" class="form-label">
+              Nombre <span class="req-star">*</span>
+            </label>
+            <input type="text" id="user-name" name="nombre" required placeholder="Escribe tu nombre..." class="form-control">
+          </div>
+
+          <!-- Campo Apellido -->
+          <div class="form-group">
+            <label for="user-lastname" class="form-label">
+              Apellido <span class="req-star">*</span>
+            </label>
+            <input type="text" id="user-lastname" name="apellido" required placeholder="Escribe tu apellido..." class="form-control">
+          </div>
+
+          <!-- Campo Email -->
+          <div class="form-group">
+            <label for="user-email" class="form-label">
+              Email <span class="req-star">*</span>
+            </label>
+            <input type="email" id="user-email" name="email" required placeholder="correo@ejemplo.com" class="form-control">
+          </div>
+
+          <!-- Campo Contraseña -->
+          <div class="form-group">
+            <label for="user-password" class="form-label">
+              Contraseña <span class="req-star">*</span>
+            </label>
+            <input type="password" id="user-password" name="contrasena" required placeholder="••••••••••••" class="form-control">
+          </div>
+        </div>
+
+        <!-- Acciones Inferiores del Formulario -->
+        <div class="form-footer">
+          <span class="form-hint">
+            <i class="fa-solid fa-circle-info"></i>
+            * Todos los campos son obligatorios
+          </span>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Guardar y Registrar Usuario</span>
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+</body>
+</html>
+

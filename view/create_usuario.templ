@@ -1,0 +1,120 @@
+package view
+
+// =============================================================================
+// COMPONENTE: FORMULARIO DE CREACIÓN DE USUARIO (create_usuario.templ)
+// =============================================================================
+// Permite al usuario ingresar nombre, apellido, correo electrónico y contraseña.
+// Al enviarse por método POST a /usuarios, el backend inserta el registro en PostgreSQL
+// y redirige a la lista de usuarios con la sesión activa.
+// =============================================================================
+
+templ CreateUsuarioPage(errorMsg string) {
+	@LayoutBase("go_tasks - Crear Usuario", "") {
+		<!-- Encabezado de la Sección -->
+		<section class="page-header">
+			<h1 class="page-title brand-glow">go_tasks</h1>
+			<div class="page-subtitle">
+				<i class="fa-solid fa-user-plus"></i>
+				<span>Registrar Nuevo Usuario</span>
+			</div>
+		</section>
+
+		<!-- Tarjeta contenedora del Formulario -->
+		<section class="form-card" style="max-width: 760px; margin: 0 auto;">
+			<div class="form-header">
+				<i class="fa-solid fa-address-card"></i>
+				<span>Formulario de Alta de Usuario</span>
+			</div>
+
+			if errorMsg != "" {
+				<div class="alert-error">
+					<i class="fa-solid fa-circle-exclamation"></i>
+					<span>{ errorMsg }</span>
+				</div>
+			}
+
+			<!-- Formulario HTML estándar (sin JavaScript) que envía por POST a /usuarios -->
+			<form action="/usuarios" method="POST">
+				<div class="form-grid-4" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+					<!-- Campo: Nombre -->
+					<div class="form-group">
+						<label for="user-name" class="form-label">
+							Nombre <span class="req-star">*</span>
+						</label>
+						<input
+							type="text"
+							id="user-name"
+							name="nombre"
+							required
+							placeholder="Escribe tu nombre..."
+							class="form-control"
+						/>
+					</div>
+
+					<!-- Campo: Apellido -->
+					<div class="form-group">
+						<label for="user-lastname" class="form-label">
+							Apellido <span class="req-star">*</span>
+						</label>
+						<input
+							type="text"
+							id="user-lastname"
+							name="apellido"
+							required
+							placeholder="Escribe tu apellido..."
+							class="form-control"
+						/>
+					</div>
+
+					<!-- Campo: Email -->
+					<div class="form-group">
+						<label for="user-email" class="form-label">
+							Email <span class="req-star">*</span>
+						</label>
+						<input
+							type="email"
+							id="user-email"
+							name="email"
+							required
+							placeholder="correo@ejemplo.com"
+							class="form-control"
+						/>
+					</div>
+
+					<!-- Campo: Contraseña -->
+					<div class="form-group">
+						<label for="user-password" class="form-label">
+							Contraseña <span class="req-star">*</span>
+						</label>
+						<input
+							type="password"
+							id="user-password"
+							name="contrasena"
+							required
+							placeholder="••••••••••••"
+							class="form-control"
+						/>
+					</div>
+				</div>
+
+				<!-- Barra de Acciones Inferior -->
+				<div class="form-footer">
+					<span class="form-hint">
+						<i class="fa-solid fa-circle-info"></i>
+						* Todos los campos son obligatorios
+					</span>
+					<div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+						<a href="/usuarios" class="btn btn-outline">
+							<i class="fa-solid fa-arrow-left"></i>
+							<span>Cancelar</span>
+						</a>
+						<button type="submit" class="btn btn-primary">
+							<i class="fa-solid fa-wand-magic-sparkles"></i>
+							<span>Guardar y Registrar Usuario</span>
+						</button>
+					</div>
+				</div>
+			</form>
+		</section>
+	}
+}

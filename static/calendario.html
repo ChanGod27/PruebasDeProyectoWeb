@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>go_tasks - Calendario y Cronómetro</title>
+  <!-- Google Fonts: Caveat & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Hoja de estilos CSS nativa -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <a href="index.html" class="brand-logo brand-glow">go_tasks</a>
+        <span class="user-badge">
+          <i class="fa-solid fa-circle-user"></i>
+          <span>Carlos (Carlos C.)</span>
+        </span>
+      </div>
+
+      <!-- Pestañas de Navegación entre Vistas -->
+      <nav class="nav-tabs">
+        <a href="usuarios.html" class="nav-tab">
+          <i class="fa-solid fa-users"></i>
+          <span>Usuarios</span>
+        </a>
+        <a href="calendario.html" class="nav-tab active">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span>Calendario</span>
+        </a>
+        <a href="materias.html" class="nav-tab">
+          <i class="fa-solid fa-table-columns"></i>
+          <span>Materias</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenedor Principal de la Vista -->
+  <main class="main-wrapper">
+    <!-- Encabezado de la Sección -->
+    <section class="page-header">
+      <h1 class="page-title brand-glow">go_tasks Calendario</h1>
+    </section>
+
+    <!-- Barra Superior de Cronómetro y Registro de Horas -->
+    <section class="timer-bar">
+      <!-- Campo 1: Tarea -->
+      <div class="timer-input-box">
+        <span class="timer-tag">Tarea:</span>
+        <input type="text" value="tp4 y 5" placeholder="Escribe tarea..." class="timer-field">
+      </div>
+
+      <!-- Campo 2: Materia -->
+      <div class="timer-input-box">
+        <span class="timer-tag">Materia:</span>
+        <input type="text" value="programacionWeb" placeholder="Escribe materia..." class="timer-field">
+      </div>
+
+      <!-- Campo 3: Display Reloj / Cronómetro -->
+      <div class="timer-clock-box">
+        <i class="fa-regular fa-clock"></i>
+        <span class="timer-clock-text">0:36:54</span>
+      </div>
+
+      <!-- Campo 4: Botón Iniciar / Detener -->
+      <button type="button" class="btn btn-outline" style="border-radius: var(--radius-md); font-size: 0.75rem; padding: 0.65rem 1rem;">
+        <i class="fa-solid fa-play" style="color: var(--color-primary);"></i>
+        <span>Iniciar / Detener</span>
+      </button>
+    </section>
+
+    <!-- Grilla Semanal de Calendario -->
+    <section class="calendar-card">
+      <div class="calendar-inner">
+        <!-- Fila de Encabezados de Días -->
+        <header class="calendar-header-row">
+          <div class="cal-head-col cal-hour-label" style="align-self: center;">
+            Hora
+          </div>
+
+          <div class="cal-head-col">
+            <span class="day-chip">DOM 1</span>
+          </div>
+
+          <div class="cal-head-col">
+            <span class="day-chip">LUN 2</span>
+          </div>
+
+          <div class="cal-head-col">
+            <div class="day-card">
+              <span class="day-card-name">MIÉ 3</span>
+              <span class="day-card-sub sub-green">
+                <span class="circle-dot green"></span> Fecha fin Tarea 3
+              </span>
+            </div>
+          </div>
+
+          <div class="cal-head-col">
+            <div class="day-card">
+              <span class="day-card-name">MIÉ 4</span>
+              <span class="day-card-sub sub-red">
+                <span class="circle-dot red"></span> Fecha fin Tarea 2
+              </span>
+            </div>
+          </div>
+
+          <div class="cal-head-col">
+            <div class="day-card today">
+              <span class="day-card-name">JUE 5 (HOY)</span>
+              <span class="day-card-sub sub-blue">
+                <span class="circle-dot blue"></span> 1 tarea pendiente
+              </span>
+            </div>
+          </div>
+
+          <div class="cal-head-col">
+            <div class="day-card">
+              <span class="day-card-name">VIE 6</span>
+              <span class="day-card-sub sub-amber">
+                <span class="circle-dot amber"></span> Fecha fin Tarea 1
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Filas de Horas (10 AM a 8 PM) -->
+        <div class="calendar-grid-body">
+          <!-- 10 AM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">10 AM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell">
+              <div class="cal-event-pill">
+                <div class="event-title-line">
+                  <span class="event-dot-white"></span>
+                  <span>Tarea 1</span>
+                </div>
+                <div class="event-time-range">10:00 AM – 12:00 PM</div>
+              </div>
+            </div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 11 AM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">11 AM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 12 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">12 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 1 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">1 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell">
+              <div class="cal-event-pill">
+                <div class="event-title-line">
+                  <span class="event-dot-white"></span>
+                  <span>Hora 2 Tarea 1</span>
+                </div>
+                <div class="event-time-range">1:00 PM – 3:00 PM</div>
+              </div>
+            </div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 2 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">2 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 3 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">3 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 4 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">4 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell">
+              <div class="cal-event-pill">
+                <div class="event-title-line">
+                  <span class="event-dot-white"></span>
+                  <span>Tarea 1</span>
+                </div>
+                <div class="event-time-range">4:00 PM – 5:00 PM</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">5 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 6 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">6 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 7 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">7 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+
+          <!-- 8 PM -->
+          <div class="cal-time-row">
+            <div class="cal-time-label-cell">8 PM</div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+            <div class="cal-slot-cell"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>
+

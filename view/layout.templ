@@ -1,0 +1,107 @@
+package view
+
+import (
+	"ServidorEntregable/db"
+)
+
+// =============================================================================
+// LAYOUT BASE: ESTRUCTURA HTML GLOBAL (layout.templ)
+// =============================================================================
+// Define el contenedor principal HTML con Google Fonts, FontAwesome, estilos CSS
+// nativos de la aplicación y la barra de navegación superior.
+// =============================================================================
+
+templ LayoutBase(titulo string, usuarioActivo string) {
+	<!DOCTYPE html>
+	<html lang="es">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ titulo }</title>
+			<!-- Google Fonts: Caveat (marca) & Inter (cuerpo) -->
+			<link rel="preconnect" href="https://fonts.googleapis.com"/>
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+			<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+			<!-- FontAwesome Icons -->
+			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+			<!-- Hoja de estilos CSS nativa (servida desde /css/style.css) -->
+			<link rel="stylesheet" href="/css/style.css"/>
+		</head>
+		<body>
+			<!-- Barra de Navegación Superior -->
+			<header class="site-header">
+				<div class="header-container">
+					<div class="brand-wrapper">
+						<a href="/usuarios" class="brand-logo brand-glow">go_tasks</a>
+						if usuarioActivo != "" {
+							<span class="user-badge">
+								<i class="fa-solid fa-circle-user"></i>
+								<span>{ usuarioActivo }</span>
+							</span>
+						} else {
+							<span class="user-badge" style="background: rgba(107, 114, 128, 0.2); border-color: rgba(107, 114, 128, 0.4); color: var(--color-text-muted);">
+								<i class="fa-solid fa-circle-user"></i>
+								<span>Sin sesión activa</span>
+							</span>
+						}
+					</div>
+
+					<!-- Enlaces de navegación entre vistas -->
+					<nav class="nav-tabs">
+						<a href="/usuarios" class="nav-tab active">
+							<i class="fa-solid fa-users"></i>
+							<span>Usuarios</span>
+						</a>
+						<a href="/calendario" class="nav-tab">
+							<i class="fa-solid fa-calendar-days"></i>
+							<span>Calendario</span>
+						</a>
+						<a href="/materias" class="nav-tab">
+							<i class="fa-solid fa-table-columns"></i>
+							<span>Materias</span>
+						</a>
+					</nav>
+				</div>
+			</header>
+
+			<!-- Contenedor principal donde se inyecta el contenido de cada página -->
+			<main class="main-wrapper">
+				{ children... }
+			</main>
+		</body>
+	</html>
+}
+
+// =============================================================================
+// PÁGINA PRINCIPAL: VISTA DE USUARIOS Y ACCESO (layout.templ)
+// =============================================================================
+// Tal como se solicitó: layout.templ actúa como la página principal, incluyendo:
+// 1. Título y subtítulo de la sección.
+// 2. La lista de usuarios existentes (con su botón de Iniciar Sesión / Sesión Activa).
+// 3. Si la lista está vacía, el aviso de "No se han creado usuarios".
+// 4. Abajo el botón "Crear Nuevo Usuario" que dirige a la página del formulario.
+// =============================================================================
+
+templ LayoutPrincipal(usuarios []db.Usuario, usuarioActivoID int32, usuarioActivoNombre string) {
+	@LayoutBase("go_tasks - Gestión de Usuarios", usuarioActivoNombre) {
+		<!-- Encabezado de la Sección -->
+		<section class="page-header">
+			<h1 class="page-title brand-glow">go_tasks</h1>
+			<div class="page-subtitle">
+				<i class="fa-solid fa-users"></i>
+				<span>Seleccionar Usuario para Iniciar Sesión</span>
+			</div>
+		</section>
+
+		<!-- Lista de Usuarios Existentes o Cartel de Vacío (desde usuario.templ) -->
+		@ListaUsuarios(usuarios, usuarioActivoID)
+
+		<!-- Botón para ir al formulario de Creación de Usuario (create_usuario.templ) -->
+		<div class="user-actions-bottom" style="text-align: center; margin-top: 2rem;">
+			<a href="/usuarios/nuevo" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.75rem 1.75rem;">
+				<i class="fa-solid fa-user-plus"></i>
+				<span>Crear Nuevo Usuario</span>
+			</a>
+		</div>
+	}
+}

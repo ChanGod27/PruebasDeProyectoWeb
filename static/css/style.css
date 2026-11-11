@@ -1,0 +1,1367 @@
+/* ==========================================================================
+   go_tasks - Hoja de Estilos CSS Nativa (Sin Frameworks)
+   Paleta Dark Mode, Tipografía, Layouts Flexbox & CSS Grid
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. VARIABLES CSS (CUSTOM PROPERTIES)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Paleta de colores Dark Mode */
+  --color-bg: #0f1115;
+  --color-header-bg: rgba(20, 22, 29, 0.92);
+  --color-card: #191b22;
+  --color-card-elevated: #21242d;
+  --color-input: #13151b;
+  --color-border: #2e3340;
+  --color-border-light: #3e4556;
+
+  /* Colores de marca / Acentos */
+  --color-primary: #f59e0b;       /* Amber principal */
+  --color-primary-hover: #d97706;
+  --color-accent: #ea580c;
+  --color-primary-glow: rgba(245, 158, 11, 0.35);
+
+  /* Texto */
+  --color-text: #e5e7eb;
+  --color-text-white: #ffffff;
+  --color-text-muted: #9ca3af;
+  --color-text-dim: #6b7280;
+
+  /* Estados y Badges */
+  --color-blue: #3b82f6;
+  --color-blue-light: #93c5fd;
+  --color-blue-bg: rgba(59, 130, 246, 0.15);
+  --color-blue-border: rgba(59, 130, 246, 0.4);
+
+  --color-green: #10b981;
+  --color-green-light: #6ee7b7;
+  --color-green-bg: rgba(16, 185, 129, 0.15);
+  --color-green-border: rgba(16, 185, 129, 0.4);
+
+  --color-red: #ef4444;
+  --color-red-light: #fca5a5;
+  --color-red-bg: rgba(239, 68, 68, 0.15);
+  --color-red-border: rgba(239, 68, 68, 0.4);
+
+  --color-purple: #a855f7;
+  --color-purple-light: #d8b4fe;
+  --color-purple-bg: rgba(168, 85, 247, 0.15);
+  --color-purple-border: rgba(168, 85, 247, 0.4);
+
+  /* Bordes y Sombras */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.45);
+
+  /* Tipografías */
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-hand: 'Caveat', cursive, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   2. RESET Y ESTILOS BASE
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: #000;
+}
+
+/* Scrollbar personalizado */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #111317;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b303c;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3e4556;
+}
+
+/* --------------------------------------------------------------------------
+   3. TIPOGRAFÍA Y EFECTOS
+   -------------------------------------------------------------------------- */
+.brand-glow {
+  text-shadow: 0 0 16px var(--color-primary-glow);
+}
+
+.font-hand {
+  font-family: var(--font-hand);
+}
+
+/* --------------------------------------------------------------------------
+   4. HEADER Y BARRA DE NAVEGACIÓN
+   -------------------------------------------------------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background-color: var(--color-header-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1rem;
+}
+
+.header-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.brand-logo {
+  font-family: var(--font-hand);
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: rgba(30, 58, 138, 0.4);
+  color: var(--color-blue-light);
+  border: 1px solid var(--color-blue-border);
+}
+
+.user-badge i {
+  color: var(--color-blue);
+}
+
+.nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #1a1d26;
+  padding: 0.3rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-tab:hover {
+  color: var(--color-text-white);
+  background-color: var(--color-card-elevated);
+}
+
+.nav-tab.active {
+  background-color: var(--color-primary);
+  color: #000000;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.25);
+}
+
+/* --------------------------------------------------------------------------
+   5. CONTENEDOR PRINCIPAL
+   -------------------------------------------------------------------------- */
+.main-wrapper {
+  flex: 1;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-family: var(--font-hand);
+  font-size: 3.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1.1;
+}
+
+.page-subtitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-blue);
+  margin-top: 0.35rem;
+}
+
+/* --------------------------------------------------------------------------
+   6. BOTONES Y ACCIONES
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #ea580c 100%);
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+.btn-outline:hover {
+  background-color: var(--color-card-elevated);
+  border-color: var(--color-border-light);
+  color: var(--color-text-white);
+}
+
+.btn-success {
+  background-color: rgba(6, 95, 70, 0.85);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: var(--color-text-white);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+.btn-success:hover {
+  background-color: #047857;
+  transform: translateY(-1px);
+}
+
+.btn-active-session {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #000000;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   7. VISTA 1: USUARIOS Y LOGIN
+   -------------------------------------------------------------------------- */
+.users-container {
+  max-width: 860px;
+  margin: 0 auto 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.user-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+  border-color: var(--color-border-light);
+}
+
+.user-card.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.12);
+}
+
+.user-id-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-blue);
+  min-width: 95px;
+}
+
+.user-card-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.user-info-box {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.dot-blue { background-color: var(--color-blue); }
+.dot-green { background-color: var(--color-green); }
+.dot-red { background-color: var(--color-red); }
+.dot-purple { background-color: var(--color-purple); }
+
+.user-text-details {
+  overflow: hidden;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-metadata-box {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.meta-row {
+  display: flex;
+  gap: 0.35rem;
+}
+.meta-label { color: var(--color-text-muted); }
+.meta-value { color: var(--color-text-white); font-weight: 600; }
+
+/* Formulario de Registro */
+.form-card {
+  max-width: 940px;
+  margin: 0 auto;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.form-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.req-star {
+  color: var(--color-primary);
+}
+
+.form-control {
+  width: 100%;
+  background-color: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--color-text-white);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.form-control::placeholder {
+  color: var(--color-text-dim);
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.form-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid rgba(46, 51, 64, 0.7);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.form-hint i {
+  color: var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   8. VISTA 2: CALENDARIO & CRONÓMETRO
+   -------------------------------------------------------------------------- */
+.timer-bar {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.85rem;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+}
+
+.timer-input-box {
+  background-color: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.timer-tag {
+  color: var(--color-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.timer-field {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-white);
+  font-weight: 600;
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.timer-field::placeholder {
+  color: var(--color-text-dim);
+}
+
+.timer-clock-box {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.timer-clock-box i {
+  color: var(--color-primary);
+  font-size: 0.9rem;
+}
+
+.timer-clock-text {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text-white);
+}
+
+.calendar-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  overflow-x: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.calendar-inner {
+  min-width: 780px;
+}
+
+.calendar-header-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.65rem;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.cal-head-col {
+  padding: 0.4rem 0.25rem;
+}
+
+.cal-head-col:not(:first-child) {
+  border-left: 1px solid var(--color-border);
+}
+
+.cal-hour-label {
+  color: var(--color-text-dim);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.day-chip {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background-color: #232733;
+  color: var(--color-text);
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+}
+
+.day-card {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+}
+
+.day-card.today {
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.day-card-name {
+  font-weight: 700;
+  color: var(--color-text-white);
+  font-size: 0.7rem;
+  display: block;
+}
+
+.day-card.today .day-card-name {
+  color: var(--color-primary);
+}
+
+.day-card-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  margin-top: 0.2rem;
+}
+
+.sub-green { color: #4ade80; }
+.sub-red { color: #f87171; }
+.sub-blue { color: #60a5fa; }
+.sub-amber { color: #fbbf24; }
+
+.circle-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.circle-dot.green { background-color: var(--color-green); }
+.circle-dot.red { background-color: var(--color-red); }
+.circle-dot.blue { background-color: var(--color-blue); }
+.circle-dot.amber { background-color: var(--color-primary); }
+
+.calendar-grid-body {
+  position: relative;
+}
+
+.cal-time-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-height: 54px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cal-time-label-cell {
+  padding: 0.5rem;
+  text-align: center;
+  color: var(--color-text-dim);
+  font-family: monospace;
+  font-size: 0.7rem;
+  align-self: center;
+}
+
+.cal-slot-cell {
+  border-left: 1px solid var(--color-border);
+  padding: 0.35rem;
+  min-height: 52px;
+  position: relative;
+  transition: background-color 0.15s ease;
+}
+
+.cal-slot-cell:hover {
+  background-color: rgba(33, 36, 45, 0.4);
+}
+
+.cal-event-pill {
+  background-color: #2563eb;
+  color: #ffffff;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.cal-event-pill:hover {
+  transform: scale(1.02);
+}
+
+.event-title-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.event-dot-white {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  display: inline-block;
+}
+
+.event-time-range {
+  font-size: 0.65rem;
+  color: #bfdbfe;
+  font-family: monospace;
+  margin-top: 0.2rem;
+}
+
+/* --------------------------------------------------------------------------
+   9. VISTA 3: MATERIAS Y KANBAN
+   -------------------------------------------------------------------------- */
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kanban-board {
+  background-color: #14161d;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  overflow-x: auto;
+  min-height: 520px;
+}
+
+.kanban-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  min-width: 760px;
+}
+
+.kanban-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.kanban-col-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.kanban-col-header {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-col-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.kanban-col-title i {
+  font-size: 0.85rem;
+}
+
+.col-icon-amber { color: var(--color-primary); }
+.col-icon-blue { color: var(--color-blue); }
+.col-icon-purple { color: var(--color-purple); }
+
+.kanban-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 160px;
+}
+
+.task-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+
+.task-card:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.task-card.highlight-emerald {
+  border: 2px solid rgba(16, 185, 129, 0.6);
+}
+
+.task-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.task-name-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-red-ring {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--color-red);
+}
+
+.task-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-white);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.badge-amber {
+  background-color: rgba(245, 158, 11, 0.18);
+  color: var(--color-primary);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.badge-red {
+  background-color: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.badge-blue {
+  background-color: rgba(59, 130, 246, 0.18);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.badge-purple {
+  background-color: rgba(168, 85, 247, 0.18);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.task-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding-left: 0.25rem;
+}
+
+.checklist-label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checklist-label:hover {
+  color: var(--color-text-white);
+}
+
+.checklist-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  background-color: var(--color-input);
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  display: inline-grid;
+  place-content: center;
+}
+
+.checklist-input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checklist-input:checked::before {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.kanban-empty-state {
+  background-color: rgba(25, 27, 34, 0.7);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.75rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empty-icon {
+  font-size: 1.6rem;
+}
+
+.empty-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.empty-desc {
+  font-size: 0.7rem;
+  color: var(--color-text-dim);
+}
+
+/* Acordeón de Tareas Completadas (Nativo con <details>) */
+.completed-accordion {
+  border: none;
+}
+
+.completed-summary {
+  list-style: none;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.completed-summary::-webkit-details-marker {
+  display: none;
+}
+
+.completed-summary:hover {
+  background-color: #282c38;
+  color: var(--color-text-white);
+}
+
+.summary-left {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.summary-left i {
+  font-size: 0.65rem;
+  transition: transform 0.2s ease;
+}
+
+.completed-accordion[open] .summary-left i {
+  transform: rotate(90deg);
+}
+
+.summary-pill {
+  font-size: 0.65rem;
+  background-color: var(--color-input);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-dim);
+  border: 1px solid var(--color-border);
+}
+
+.completed-list {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  background-color: rgba(25, 27, 34, 0.8);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.completed-item {
+  color: var(--color-text-dim);
+  text-decoration: line-through;
+}
+
+/* --------------------------------------------------------------------------
+   10. MODAL FORMULARIO (Nativo en CSS con :target)
+   -------------------------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Se abre automáticamente al hacer click en el enlace href="#task-modal" */
+.modal:target {
+  display: flex;
+}
+
+.modal-content {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  max-width: 460px;
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  position: relative;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: var(--color-text-dim);
+  text-decoration: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  color: var(--color-text-white);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-footer {
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   11. PANTALLA DE LOGIN (index.html)
+   -------------------------------------------------------------------------- */
+.login-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.login-logo {
+  font-family: var(--font-hand);
+  font-size: 3.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.login-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.login-form .form-group {
+  text-align: left;
+}
+
+.login-btn-submit {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.825rem;
+  color: var(--color-text-muted);
+}
+
+.login-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.login-link:hover {
+  color: #fbbf24;
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   12. ESTADO VACÍO (EMPTY STATE) Y AVISOS
+   -------------------------------------------------------------------------- */
+.empty-state-card {
+  background-color: var(--color-card);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 3.5rem 2rem;
+  text-align: center;
+  max-width: 680px;
+  margin: 1.5rem auto 2.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-state-icon {
+  font-size: 2.75rem;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-white);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-desc {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  max-width: 460px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.alert-error {
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   13. TARJETA AVISO TP6 (Próxima Entrega)
+   -------------------------------------------------------------------------- */
+.tp6-card {
+  max-width: 620px;
+  margin: 2.5rem auto;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.tp6-icon-wrap {
+  width: 72px;
+  height: 72px;
+  background-color: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.tp6-icon {
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
+.tp6-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-white);
+  margin-bottom: 0.5rem;
+}
+
+.tp6-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.75rem;
+}
+
+.tp6-box-notice {
+  background-color: var(--color-card-elevated);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0 auto;
+}
+
+.tp6-box-notice i {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+/* --------------------------------------------------------------------------
+   14. RESPONSIVE DESIGN (MEDIA QUERIES)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-tabs {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+  }
+
+  .user-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-footer .btn {
+    width: 100%;
+  }
+}
+

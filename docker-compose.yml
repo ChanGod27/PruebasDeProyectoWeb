@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: go_tasks_db
+      POSTGRES_USER: trabajo_web
+      POSTGRES_PASSWORD: carlos-luca-hermes
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d mi_dominio_db" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5

@@ -1,0 +1,10 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    schema: "db/schema.sql"      # Ubicación de tus tablas/DDL (o carpeta "db/migrations")
+    queries: "db/queries.sql"    # Ubicación de tus consultas con anotaciones sqlc
+    gen:
+      go:
+        package: "db"            # Nombre del package de Go para los archivos generados
+        out: "db"       # Directorio donde sqlc escribirá el código Go
+        sql_package: "pgx/v5"    # Driver a usar (ej: "pgx/v5" o "database/sql")
