@@ -1,13 +1,15 @@
 package views
 
 // =============================================================================
-// LAYOUTS BASE: ESTRUCTURA HTML GLOBAL (layout.templ)
+// LAYOUTS BASE: ESTRUCTURA HTML GLOBAL CON HTMX (layout.templ)
 // =============================================================================
-// Contiene dos layouts:
-// 1. LayoutAuth: Para vistas sin sesión activa (Login y Registro). No incluye
-//    la barra de navegación del dashboard para evitar accesos sin sesión.
-// 2. LayoutBase: Dashboard principal con barra de navegación superior para
-//    las vistas autenticadas (Usuario, Calendario y Materias).
+// Opción A (HX-Redirect):
+// 1. LayoutAuth: Para vistas sin sesión activa (Login y Registro). Envuelve el
+//    contenido en #auth-content para navegar entre Login y Registro con HTMX.
+//    Al iniciar sesión exitosamente, el backend responde con HX-Redirect: /calendario.
+// 2. LayoutBase: Dashboard principal con barra de navegación superior. Los enlaces
+//    usan hx-get apuntando a #main-content con hx-push-url="true" para cambiar
+//    de vista sin recargar la página ni perder el header/sesión.
 // =============================================================================
 
 templ LayoutAuth(titulo string) {
@@ -25,9 +27,13 @@ templ LayoutAuth(titulo string) {
 			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 			<!-- Hoja de estilos CSS nativa (servida desde /css/style.css) -->
 			<link rel="stylesheet" href="/css/style.css"/>
+			<!-- HTMX -->
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 		</head>
 		<body>
-			{ children... }
+			<div id="auth-content" style="flex: 1; display: flex; flex-direction: column;">
+				{ children... }
+			</div>
 		</body>
 	</html>
 }
@@ -47,13 +53,22 @@ templ LayoutBase(titulo string, usuarioActivo string, activeTab string) {
 			<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 			<!-- Hoja de estilos CSS nativa (servida desde /css/style.css) -->
 			<link rel="stylesheet" href="/css/style.css"/>
+			<!-- HTMX -->
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
 		</head>
 		<body>
-			<!-- Barra de Navegación Superior del Dashboard -->
+			<!-- Barra de Navegación Superior del Dashboard (persistente entre vistas HTMX) -->
 			<header class="site-header">
 				<div class="header-container">
 					<div class="brand-wrapper">
-						<a href="/calendario" class="brand-logo brand-glow">go_tasks</a>
+						<a
+							href="/calendario"
+							hx-get="/calendario"
+							hx-target="#main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							class="brand-logo brand-glow"
+						>go_tasks</a>
 						if usuarioActivo != "" {
 							<span class="user-badge">
 								<i class="fa-solid fa-circle-user"></i>
@@ -64,15 +79,39 @@ templ LayoutBase(titulo string, usuarioActivo string, activeTab string) {
 
 					<!-- Pestañas de Navegación entre Vistas -->
 					<nav class="nav-tabs">
-						<a href="/usuario" class={ "nav-tab", templ.KV("active", activeTab == "usuario") }>
+						<a
+							href="/usuario"
+							hx-get="/usuario"
+							hx-target="#main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							data-tab="usuario"
+							class={ "nav-tab", templ.KV("active", activeTab == "usuario") }
+						>
 							<i class="fa-solid fa-user"></i>
 							<span>Usuario</span>
 						</a>
-						<a href="/calendario" class={ "nav-tab", templ.KV("active", activeTab == "calendario") }>
+						<a
+							href="/calendario"
+							hx-get="/calendario"
+							hx-target="#main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							data-tab="calendario"
+							class={ "nav-tab", templ.KV("active", activeTab == "calendario") }
+						>
 							<i class="fa-solid fa-calendar-days"></i>
 							<span>Calendario</span>
 						</a>
-						<a href="/materias" class={ "nav-tab", templ.KV("active", activeTab == "materias") }>
+						<a
+							href="/materias"
+							hx-get="/materias"
+							hx-target="#main-content"
+							hx-swap="innerHTML"
+							hx-push-url="true"
+							data-tab="materias"
+							class={ "nav-tab", templ.KV("active", activeTab == "materias") }
+						>
 							<i class="fa-solid fa-table-columns"></i>
 							<span>Materias</span>
 						</a>
@@ -84,10 +123,25 @@ templ LayoutBase(titulo string, usuarioActivo string, activeTab string) {
 				</div>
 			</header>
 
-			<!-- Contenedor principal donde se inyecta el contenido de cada página -->
-			<main class="main-wrapper">
+			<!-- Contenedor principal donde HTMX inyecta el fragmento de cada vista -->
+			<main id="main-content" class="main-wrapper">
 				{ children... }
 			</main>
+
+			<!-- Sincroniza la pestaña activa del navbar al navegar con HTMX o historial -->
+			<script>
+				(function() {
+					function syncActiveTab() {
+						const path = window.location.pathname;
+						document.querySelectorAll(".nav-tabs .nav-tab[data-tab]").forEach(function(tab) {
+							const href = tab.getAttribute("href");
+							tab.classList.toggle("active", path === href);
+						});
+					}
+					document.body.addEventListener("htmx:pushedIntoHistory", syncActiveTab);
+					window.addEventListener("popstate", syncActiveTab);
+				})();
+			</script>
 		</body>
 	</html>
 }

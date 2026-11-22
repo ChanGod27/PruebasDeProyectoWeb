@@ -10,7 +10,24 @@ services:
     volumes:
       - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d mi_dominio_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U trabajo_web -d go_tasks_db" ]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================================================
+  # AGREGADO PARA REDIS
+  # Servicio de Redis para almacenar sesiones de usuario activas (clave -> ID).
+  # ===========================================================================
+  redis:
+    # Imagen oficial liviana de Redis 7 basada en Alpine Linux
+    image: redis:7-alpine
+    # Expone el puerto estándar de Redis (6379) al host local para que Go se conecte en localhost:6379
+    ports:
+      - "6379:6379"
+    # Healthcheck: ejecuta `redis-cli ping` periódicamente para verificar que Redis acepta conexiones
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 2s
       timeout: 5s
       retries: 5

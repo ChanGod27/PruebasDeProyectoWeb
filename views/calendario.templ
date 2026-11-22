@@ -6,13 +6,12 @@ import (
 )
 
 // =============================================================================
-// VISTA DE CALENDARIO Y CRONÓMETRO (calendario.templ)
+// VISTA DE CALENDARIO Y CRONÓMETRO CON HTMX (calendario.templ)
 // =============================================================================
-// Estructura de dashboard con dos módulos principales:
-// 1. Módulo de Cronómetro (.timer-bar): Permite seleccionar una tarea, medir
-//    tiempo de estudio en vivo y registrar horas trabajadas (POST /horas_trabajadas).
-// 2. Módulo de Calendario (.calendar-card): Grilla semanal (Hora + 6 días)
-//    siguiendo los estilos nativos de static/css/style.css.
+// - CalendarioContent: fragmento renderizado dentro de #main-content (HTMX).
+// - CalendarioPage: página completa envuelta en LayoutBase (carga inicial / F5).
+// El formulario del cronómetro envía por hx-post="/horas_trabajadas" y
+// actualiza #main-content con el calendario y eventos recién guardados.
 // =============================================================================
 
 type DiaCalendario struct {
@@ -39,197 +38,213 @@ func formatHora(h int) string {
 	return fmt.Sprintf("%02d:00", h)
 }
 
-templ CalendarioPage(usuario db.Usuario, tareas []db.Tarea, dias []DiaCalendario, eventos []EventoCalendario) {
-	@LayoutBase("go_tasks - Calendario", usuario.Nombre, "calendario") {
-		<!-- Encabezado de la Sección -->
-		<section class="page-header">
-			<h1 class="page-title brand-glow">go_tasks</h1>
-			<div class="page-subtitle">
-				<i class="fa-solid fa-calendar-days"></i>
-				<span>Dashboard de Cronómetro y Calendario Semanal</span>
-			</div>
-		</section>
+templ CalendarioContent(tareas []db.Tarea, dias []DiaCalendario, eventos []EventoCalendario) {
+	<!-- Encabezado de la Sección -->
+	<section class="page-header">
+		<h1 class="page-title brand-glow">go_tasks</h1>
+		<div class="page-subtitle">
+			<i class="fa-solid fa-calendar-days"></i>
+			<span>Dashboard de Cronómetro y Calendario Semanal</span>
+		</div>
+	</section>
 
-		<!-- MÓDULO 1: CRONÓMETRO DE ESTUDIO -->
-		<section class="timer-bar" aria-label="Módulo de Cronómetro">
-			<!-- Selector de Tarea -->
-			<div class="timer-input-box">
-				<span class="timer-tag">
-					<i class="fa-solid fa-list-check"></i> Tarea:
-				</span>
-				<select id="timer-tarea-select" name="id_tarea" form="timer-save-form" class="timer-field" required>
-					if len(tareas) == 0 {
-						<option value="">Sin tareas disponibles</option>
-					} else {
-						<option value="">Seleccionar tarea...</option>
-						for _, t := range tareas {
-							if !t.Completada {
-								<option value={ fmt.Sprint(t.IDTarea) }>{ t.Titulo }</option>
-							}
+	<!-- MÓDULO 1: CRONÓMETRO DE ESTUDIO -->
+	<section class="timer-bar" aria-label="Módulo de Cronómetro">
+		<!-- Selector de Tarea -->
+		<div class="timer-input-box">
+			<span class="timer-tag">
+				<i class="fa-solid fa-list-check"></i> Tarea:
+			</span>
+			<select id="timer-tarea-select" name="id_tarea" form="timer-save-form" class="timer-field" required>
+				if len(tareas) == 0 {
+					<option value="">Sin tareas disponibles</option>
+				} else {
+					<option value="">Seleccionar tarea...</option>
+					for _, t := range tareas {
+						if !t.Completada {
+							<option value={ fmt.Sprint(t.IDTarea) }>{ t.Titulo }</option>
 						}
 					}
-				</select>
-			</div>
+				}
+			</select>
+		</div>
 
-			<!-- Nota / Estado de Sesión -->
-			<div class="timer-input-box">
-				<span class="timer-tag">
-					<i class="fa-solid fa-bolt"></i> Estado:
-				</span>
-				<input
-					type="text"
-					id="timer-status-text"
-					class="timer-field"
-					value="Listo para iniciar"
-					readonly
-				/>
-			</div>
+		<!-- Nota / Estado de Sesión -->
+		<div class="timer-input-box">
+			<span class="timer-tag">
+				<i class="fa-solid fa-bolt"></i> Estado:
+			</span>
+			<input
+				type="text"
+				id="timer-status-text"
+				class="timer-field"
+				value="Listo para iniciar"
+				readonly
+			/>
+		</div>
 
-			<!-- Reloj Digital -->
-			<div class="timer-clock-box">
-				<i class="fa-solid fa-stopwatch"></i>
-				<span id="timer-display" class="timer-clock-text">00:00:00</span>
-			</div>
+		<!-- Reloj Digital -->
+		<div class="timer-clock-box">
+			<i class="fa-solid fa-stopwatch"></i>
+			<span id="timer-display" class="timer-clock-text">00:00:00</span>
+		</div>
 
-			<!-- Controles del Cronómetro + Formulario de Guardado -->
-			<form id="timer-save-form" action="/horas_trabajadas" method="POST" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
-				<input type="hidden" id="timer-inicio" name="timestamp_inicio"/>
-				<input type="hidden" id="timer-fin" name="timestamp_fin"/>
+		<!-- Controles del Cronómetro + Formulario HTMX de Guardado -->
+		<form
+			id="timer-save-form"
+			action="/horas_trabajadas"
+			method="POST"
+			hx-post="/horas_trabajadas"
+			hx-target="#main-content"
+			hx-swap="innerHTML"
+			style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;"
+		>
+			<input type="hidden" id="timer-inicio" name="timestamp_inicio"/>
+			<input type="hidden" id="timer-fin" name="timestamp_fin"/>
 
-				<button type="button" id="btn-timer-start" class="btn btn-primary" onclick="iniciarCronometro()">
-					<i class="fa-solid fa-play"></i>
-					<span>Iniciar</span>
-				</button>
-				<button type="button" id="btn-timer-pause" class="btn btn-outline" onclick="pausarCronometro()" disabled>
-					<i class="fa-solid fa-pause"></i>
-					<span>Pausar</span>
-				</button>
-				<button type="submit" id="btn-timer-save" class="btn btn-success" onclick="return prepararGuardadoCronometro()">
-					<i class="fa-solid fa-floppy-disk"></i>
-					<span>Guardar</span>
-				</button>
-			</form>
-		</section>
+			<button type="button" id="btn-timer-start" class="btn btn-primary" onclick="iniciarCronometro()">
+				<i class="fa-solid fa-play"></i>
+				<span>Iniciar</span>
+			</button>
+			<button type="button" id="btn-timer-pause" class="btn btn-outline" onclick="pausarCronometro()" disabled>
+				<i class="fa-solid fa-pause"></i>
+				<span>Pausar</span>
+			</button>
+			<button type="submit" id="btn-timer-save" class="btn btn-success" onclick="return prepararGuardadoCronometro()">
+				<i class="fa-solid fa-floppy-disk"></i>
+				<span>Guardar</span>
+			</button>
+		</form>
+	</section>
 
-		<!-- MÓDULO 2: CALENDARIO SEMANAL -->
-		<section class="calendar-card" aria-label="Módulo de Calendario">
-			<div class="calendar-inner">
-				<!-- Cabecera de Días -->
-				<div class="calendar-header-row">
-					<div class="cal-head-col">
-						<span class="cal-hour-label">Hora</span>
-					</div>
-					if len(dias) == 0 {
-						for _, nombreDia := range []string{"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"} {
-							<div class="cal-head-col">
-								<div class="day-card">
-									<span class="day-card-name">{ nombreDia }</span>
-									<span class="day-card-sub sub-blue">
-										<span class="circle-dot blue"></span>
-										<span>Sin eventos</span>
-									</span>
-								</div>
-							</div>
-						}
-					} else {
-						for _, dia := range dias {
-							<div class="cal-head-col">
-								<div class={ "day-card", templ.KV("today", dia.EsHoy) }>
-									<span class="day-card-name">{ dia.Nombre } { dia.Fecha }</span>
-									if dia.Resumen != "" {
-										<span class={ "day-card-sub", "sub-" + dia.ColorClass }>
-											<span class={ "circle-dot", dia.ColorClass }></span>
-											<span>{ dia.Resumen }</span>
-										</span>
-									}
-								</div>
-							</div>
-						}
-					}
+	<!-- MÓDULO 2: CALENDARIO SEMANAL -->
+	<section class="calendar-card" aria-label="Módulo de Calendario">
+		<div class="calendar-inner">
+			<!-- Cabecera de Días -->
+			<div class="calendar-header-row">
+				<div class="cal-head-col">
+					<span class="cal-hour-label">Hora</span>
 				</div>
-
-				<!-- Cuerpo de Franjas Horarias -->
-				<div class="calendar-grid-body">
-					for _, hora := range horasDelDia() {
-						<div class="cal-time-row">
-							<div class="cal-time-label-cell">{ formatHora(hora) }</div>
-							for diaIdx := 0; diaIdx < 6; diaIdx++ {
-								<div class="cal-slot-cell">
-									for _, ev := range eventos {
-										if ev.DiaIndex == diaIdx && ev.Hora == hora {
-											<div class="cal-event-pill" title={ ev.Titulo }>
-												<div class="event-title-line">
-													<span class="event-dot-white"></span>
-													<span>{ ev.Titulo }</span>
-												</div>
-												if ev.RangoHorario != "" {
-													<div class="event-time-range">{ ev.RangoHorario }</div>
-												}
-											</div>
-										}
-									}
-								</div>
-							}
+				if len(dias) == 0 {
+					for _, nombreDia := range []string{"Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"} {
+						<div class="cal-head-col">
+							<div class="day-card">
+								<span class="day-card-name">{ nombreDia }</span>
+								<span class="day-card-sub sub-blue">
+									<span class="circle-dot blue"></span>
+									<span>Sin eventos</span>
+								</span>
+							</div>
 						</div>
 					}
-				</div>
-			</div>
-		</section>
-
-		<!-- Lógica cliente mínima para el cronómetro -->
-		<script>
-			(function() {
-				let segundos = 0;
-				let intervalo = null;
-				let inicioISO = null;
-
-				const display = document.getElementById("timer-display");
-				const statusInput = document.getElementById("timer-status-text");
-				const btnStart = document.getElementById("btn-timer-start");
-				const btnPause = document.getElementById("btn-timer-pause");
-				const inputInicio = document.getElementById("timer-inicio");
-				const inputFin = document.getElementById("timer-fin");
-
-				function formatear(seg) {
-					const h = String(Math.floor(seg / 3600)).padStart(2, "0");
-					const m = String(Math.floor((seg % 3600) / 60)).padStart(2, "0");
-					const s = String(seg % 60).padStart(2, "0");
-					return h + ":" + m + ":" + s;
-				}
-
-				window.iniciarCronometro = function() {
-					if (intervalo) return;
-					if (!inicioISO) {
-						inicioISO = new Date().toISOString();
-						inputInicio.value = inicioISO;
+				} else {
+					for _, dia := range dias {
+						<div class="cal-head-col">
+							<div class={ "day-card", templ.KV("today", dia.EsHoy) }>
+								<span class="day-card-name">{ dia.Nombre } { dia.Fecha }</span>
+								if dia.Resumen != "" {
+									<span class={ "day-card-sub", "sub-" + dia.ColorClass }>
+										<span class={ "circle-dot", dia.ColorClass }></span>
+										<span>{ dia.Resumen }</span>
+									</span>
+								}
+							</div>
+						</div>
 					}
-					statusInput.value = "En curso...";
-					btnStart.disabled = true;
-					btnPause.disabled = false;
-					intervalo = setInterval(function() {
-						segundos++;
-						display.textContent = formatear(segundos);
-					}, 1000);
-				};
+				}
+			</div>
 
-				window.pausarCronometro = function() {
-					if (!intervalo) return;
+			<!-- Cuerpo de Franjas Horarias -->
+			<div class="calendar-grid-body">
+				for _, hora := range horasDelDia() {
+					<div class="cal-time-row">
+						<div class="cal-time-label-cell">{ formatHora(hora) }</div>
+						for diaIdx := 0; diaIdx < 6; diaIdx++ {
+							<div class="cal-slot-cell">
+								for _, ev := range eventos {
+									if ev.DiaIndex == diaIdx && ev.Hora == hora {
+										<div class="cal-event-pill" title={ ev.Titulo }>
+											<div class="event-title-line">
+												<span class="event-dot-white"></span>
+												<span>{ ev.Titulo }</span>
+											</div>
+											if ev.RangoHorario != "" {
+												<div class="event-time-range">{ ev.RangoHorario }</div>
+											}
+										</div>
+									}
+								}
+							</div>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	</section>
+
+	<!-- Lógica cliente mínima para el cronómetro -->
+	<script>
+		(function() {
+			let segundos = 0;
+			let intervalo = null;
+			let inicioISO = null;
+
+			const display = document.getElementById("timer-display");
+			const statusInput = document.getElementById("timer-status-text");
+			const btnStart = document.getElementById("btn-timer-start");
+			const btnPause = document.getElementById("btn-timer-pause");
+			const inputInicio = document.getElementById("timer-inicio");
+			const inputFin = document.getElementById("timer-fin");
+
+			function formatear(seg) {
+				const h = String(Math.floor(seg / 3600)).padStart(2, "0");
+				const m = String(Math.floor((seg % 3600) / 60)).padStart(2, "0");
+				const s = String(seg % 60).padStart(2, "0");
+				return h + ":" + m + ":" + s;
+			}
+
+			window.iniciarCronometro = function() {
+				if (intervalo) return;
+				if (!inicioISO) {
+					inicioISO = new Date().toISOString();
+					inputInicio.value = inicioISO;
+				}
+				statusInput.value = "En curso...";
+				btnStart.disabled = true;
+				btnPause.disabled = false;
+				intervalo = setInterval(function() {
+					segundos++;
+					display.textContent = formatear(segundos);
+				}, 1000);
+			};
+
+			window.pausarCronometro = function() {
+				if (!intervalo) return;
+				clearInterval(intervalo);
+				intervalo = null;
+				statusInput.value = "Pausado";
+				btnStart.disabled = false;
+				btnPause.disabled = true;
+			};
+
+			window.prepararGuardadoCronometro = function() {
+				if (!inicioISO) {
+					alert("Primero inicia el cronómetro antes de guardar.");
+					return false;
+				}
+				inputFin.value = new Date().toISOString();
+				if (intervalo) {
 					clearInterval(intervalo);
 					intervalo = null;
-					statusInput.value = "Pausado";
-					btnStart.disabled = false;
-					btnPause.disabled = true;
-				};
+				}
+				return true;
+			};
+		})();
+	</script>
+}
 
-				window.prepararGuardadoCronometro = function() {
-					if (!inicioISO) {
-						alert("Primero inicia el cronómetro antes de guardar.");
-						return false;
-					}
-					inputFin.value = new Date().toISOString();
-					return true;
-				};
-			})();
-		</script>
+templ CalendarioPage(usuario db.Usuario, tareas []db.Tarea, dias []DiaCalendario, eventos []EventoCalendario) {
+	@LayoutBase("go_tasks - Calendario", usuario.Nombre, "calendario") {
+		@CalendarioContent(tareas, dias, eventos)
 	}
 }

@@ -6,10 +6,11 @@ import (
 )
 
 // =============================================================================
-// VISTA DE USUARIO ACTIVO (usuario.templ)
+// VISTA DE USUARIO ACTIVO CON HTMX (usuario.templ)
 // =============================================================================
+// - UsuarioContent: fragmento renderizado dentro de #main-content (HTMX).
+// - UsuarioPage: página completa envuelta en LayoutBase (carga inicial / F5).
 // Muestra únicamente la información del usuario con sesión activa.
-// Se eliminaron ListaUsuarios y TP6Aviso (LoginPage ahora vive en login.templ).
 // =============================================================================
 
 func inicialApellido(apellido string) string {
@@ -20,76 +21,94 @@ func inicialApellido(apellido string) string {
 	return string(runes[0:1]) + "."
 }
 
-templ UsuarioPage(usuario db.Usuario) {
-	@LayoutBase("go_tasks - Mi Usuario", usuario.Nombre, "usuario") {
-		<!-- Encabezado de la Sección -->
-		<section class="page-header">
-			<h1 class="page-title brand-glow">go_tasks</h1>
-			<div class="page-subtitle">
-				<i class="fa-solid fa-circle-user"></i>
-				<span>Información de la Cuenta Activa</span>
+templ UsuarioContent(usuario db.Usuario) {
+	<!-- Encabezado de la Sección -->
+	<section class="page-header">
+		<h1 class="page-title brand-glow">go_tasks</h1>
+		<div class="page-subtitle">
+			<i class="fa-solid fa-circle-user"></i>
+			<span>Información de la Cuenta Activa</span>
+		</div>
+	</section>
+
+	<!-- Tarjeta de Datos del Usuario Activo -->
+	<section class="users-container" style="max-width: 760px; margin: 0 auto;">
+		<article class="user-card active">
+			<!-- Etiqueta con el ID del usuario -->
+			<div class="user-id-badge">
+				<i class="fa-solid fa-user"></i>
+				<span>Usuario #{ fmt.Sprint(usuario.IDUsuario) }</span>
 			</div>
-		</section>
 
-		<!-- Tarjeta de Datos del Usuario Activo -->
-		<section class="users-container" style="max-width: 760px; margin: 0 auto;">
-			<article class="user-card active">
-				<!-- Etiqueta con el ID del usuario -->
-				<div class="user-id-badge">
-					<i class="fa-solid fa-user"></i>
-					<span>Usuario #{ fmt.Sprint(usuario.IDUsuario) }</span>
-				</div>
-
-				<!-- Datos del Usuario: Nombre, Apellido y Email -->
-				<div class="user-card-body">
-					<div class="user-info-box">
-						<span class="avatar-dot dot-blue"></span>
-						<div class="user-text-details">
-							<p class="user-name">{ usuario.Nombre } { inicialApellido(usuario.Apellido) }</p>
-							<p class="user-email">{ usuario.Email }</p>
-						</div>
-					</div>
-
-					<div class="user-metadata-box">
-						<p class="meta-row">
-							<span class="meta-label">Nombre:</span>
-							<span class="meta-value">{ usuario.Nombre }</span>
-						</p>
-						<p class="meta-row">
-							<span class="meta-label">Apellido:</span>
-							<span class="meta-value">{ usuario.Apellido }</span>
-						</p>
-						<p class="meta-row">
-							<span class="meta-label">Email:</span>
-							<span class="meta-value">{ usuario.Email }</span>
-						</p>
+			<!-- Datos del Usuario: Nombre, Apellido y Email -->
+			<div class="user-card-body">
+				<div class="user-info-box">
+					<span class="avatar-dot dot-blue"></span>
+					<div class="user-text-details">
+						<p class="user-name">{ usuario.Nombre } { inicialApellido(usuario.Apellido) }</p>
+						<p class="user-email">{ usuario.Email }</p>
 					</div>
 				</div>
 
-				<!-- Estado de Sesión Activa -->
-				<span class="btn btn-active-session">
-					<i class="fa-solid fa-circle-check"></i>
-					<span>Sesión Activa</span>
-				</span>
-			</article>
-
-			<!-- Acciones rápidas de la sesión -->
-			<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
-				<div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-					<a href="/calendario" class="btn btn-primary">
-						<i class="fa-solid fa-calendar-days"></i>
-						<span>Ir al Calendario</span>
-					</a>
-					<a href="/materias" class="btn btn-outline">
-						<i class="fa-solid fa-table-columns"></i>
-						<span>Ver Materias</span>
-					</a>
+				<div class="user-metadata-box">
+					<p class="meta-row">
+						<span class="meta-label">Nombre:</span>
+						<span class="meta-value">{ usuario.Nombre }</span>
+					</p>
+					<p class="meta-row">
+						<span class="meta-label">Apellido:</span>
+						<span class="meta-value">{ usuario.Apellido }</span>
+					</p>
+					<p class="meta-row">
+						<span class="meta-label">Email:</span>
+						<span class="meta-value">{ usuario.Email }</span>
+					</p>
 				</div>
-				<a href="/logout" class="btn btn-outline" style="border-color: rgba(239, 68, 68, 0.45); color: #f87171;">
-					<i class="fa-solid fa-right-from-bracket"></i>
-					<span>Cerrar Sesión</span>
+			</div>
+
+			<!-- Estado de Sesión Activa -->
+			<span class="btn btn-active-session">
+				<i class="fa-solid fa-circle-check"></i>
+				<span>Sesión Activa</span>
+			</span>
+		</article>
+
+		<!-- Acciones rápidas de la sesión (navegación HTMX dentro del dashboard) -->
+		<div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+			<div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+				<a
+					href="/calendario"
+					hx-get="/calendario"
+					hx-target="#main-content"
+					hx-swap="innerHTML"
+					hx-push-url="true"
+					class="btn btn-primary"
+				>
+					<i class="fa-solid fa-calendar-days"></i>
+					<span>Ir al Calendario</span>
+				</a>
+				<a
+					href="/materias"
+					hx-get="/materias"
+					hx-target="#main-content"
+					hx-swap="innerHTML"
+					hx-push-url="true"
+					class="btn btn-outline"
+				>
+					<i class="fa-solid fa-table-columns"></i>
+					<span>Ver Materias</span>
 				</a>
 			</div>
-		</section>
+			<a href="/logout" class="btn btn-outline" style="border-color: rgba(239, 68, 68, 0.45); color: #f87171;">
+				<i class="fa-solid fa-right-from-bracket"></i>
+				<span>Cerrar Sesión</span>
+			</a>
+		</div>
+	</section>
+}
+
+templ UsuarioPage(usuario db.Usuario) {
+	@LayoutBase("go_tasks - Mi Usuario", usuario.Nombre, "usuario") {
+		@UsuarioContent(usuario)
 	}
 }

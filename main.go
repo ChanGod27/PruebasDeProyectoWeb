@@ -29,6 +29,20 @@ func main() {
 	// Instanciar objeto de la base de datos (userRepository)
 	queries := db.New(conn)
 
+	// =========================================================================
+	// AGREGADO PARA REDIS: INICIALIZACIÓN DEL CLIENTE DE SESIONES
+	// =========================================================================
+	// Conecta al servidor Redis en localhost:6379 para almacenar sesiones activas.
+	// Si Redis no está levantado, muestra una advertencia en consola sin detener
+	// el arranque del resto del servidor HTTP.
+	rdb, errRedis := db.AbrirRedis(ctx, "localhost:6379")
+	if errRedis != nil {
+		fmt.Printf("ADVERTENCIA: no se pudo conectar a Redis (sesiones deshabilitadas): %v\n", errRedis)
+	} else {
+		// Garantiza el cierre limpio del pool de conexiones al apagar el servidor.
+		defer rdb.Close()
+	}
+
 	// Servidor de archivos estáticos (CSS, íconos, etc.)
 	staticDir := "./static"
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
@@ -131,6 +145,18 @@ func main() {
 	})
 	http.HandleFunc("DELETE /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeleteHorasTrabajadas(w, r, queries)
+	})
+
+	// =========================================================================
+	// AGREGADO PARA REDIS: RUTAS ESPECÍFICAS DE SESIÓN EN REDIS
+	// =========================================================================
+	// GET /logout: elimina la clave de sesión en Redis, borra la cookie y redirige a /login.
+	http.HandleFunc("GET /logout", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LogoutRedisHandler(w, r, rdb)
+	})
+	// GET /sesion/estado: devuelve un JSON indicando si la cookie actual tiene sesión válida en Redis.
+	http.HandleFunc("GET /sesion/estado", func(w http.ResponseWriter, r *http.Request) {
+		handlers.SessionStatusRedisHandler(w, r, rdb)
 	})
 
 	port := ":8080"
