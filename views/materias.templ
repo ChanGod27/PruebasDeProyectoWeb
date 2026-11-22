@@ -1,0 +1,289 @@
+package views
+
+import (
+	"ServidorEntregable/db"
+	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
+)
+
+// =============================================================================
+// VISTA DE MATERIAS Y TAREAS (materias.templ)
+// =============================================================================
+// Muestra el tablero de materias (ListaTarea) con sus tareas pendientes y un
+// acordeón nativo (<details>) para las tareas completadas.
+// Incluye botones y modales CSS (:target) para Agregar Materia y Agregar Tarea.
+// =============================================================================
+
+type MateriaConTareas struct {
+	Materia db.ListaTarea
+	Tareas  []db.Tarea
+}
+
+func tareasPendientes(tareas []db.Tarea) []db.Tarea {
+	var res []db.Tarea
+	for _, t := range tareas {
+		if !t.Completada {
+			res = append(res, t)
+		}
+	}
+	return res
+}
+
+func tareasCompletadas(tareas []db.Tarea) []db.Tarea {
+	var res []db.Tarea
+	for _, t := range tareas {
+		if t.Completada {
+			res = append(res, t)
+		}
+	}
+	return res
+}
+
+func formatFecha(ts pgtype.Timestamp) string {
+	if !ts.Valid {
+		return ""
+	}
+	return ts.Time.Format("02/01 15:04")
+}
+
+templ MateriasPage(usuario db.Usuario, materias []MateriaConTareas) {
+	@LayoutBase("go_tasks - Materias", usuario.Nombre, "materias") {
+		<!-- Encabezado de la Sección -->
+		<section class="page-header">
+			<h1 class="page-title brand-glow">go_tasks</h1>
+			<div class="page-subtitle">
+				<i class="fa-solid fa-table-columns"></i>
+				<span>Tablero de Materias y Tareas</span>
+			</div>
+		</section>
+
+		<!-- Barra de Acciones: Agregar Materia / Agregar Tarea -->
+		<section class="action-bar">
+			<div style="color: var(--color-text-muted); font-size: 0.9rem; font-weight: 500;">
+				<i class="fa-solid fa-layer-group" style="color: var(--color-primary); margin-right: 0.4rem;"></i>
+				<span>{ fmt.Sprint(len(materias)) } materias registradas</span>
+			</div>
+			<div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+				<a href="#materia-modal" class="btn btn-outline">
+					<i class="fa-solid fa-folder-plus"></i>
+					<span>Agregar Materia</span>
+				</a>
+				<a href="#task-modal" class="btn btn-primary">
+					<i class="fa-solid fa-plus"></i>
+					<span>Agregar Tarea</span>
+				</a>
+			</div>
+		</section>
+
+		<!-- Tablero de Materias -->
+		if len(materias) == 0 {
+			<div class="empty-state-card">
+				<i class="fa-solid fa-book-open empty-state-icon"></i>
+				<h3 class="empty-state-title">No tienes materias creadas</h3>
+				<p class="empty-state-desc">
+					Crea tu primera materia para comenzar a organizar tus tareas, fechas límite y horas de estudio.
+				</p>
+				<div style="margin-top: 1.5rem;">
+					<a href="#materia-modal" class="btn btn-primary">
+						<i class="fa-solid fa-folder-plus"></i>
+						<span>Agregar Primera Materia</span>
+					</a>
+				</div>
+			</div>
+		} else {
+			<section class="kanban-board">
+				<div class="kanban-columns" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+					for _, m := range materias {
+						<article class="kanban-col">
+							<div class="kanban-col-top">
+								<!-- Cabecera de la Materia -->
+								<header class="kanban-col-header">
+									<div class="kanban-col-title">
+										<i class="fa-solid fa-book col-icon-amber"></i>
+										<span>{ m.Materia.Titulo }</span>
+									</div>
+									<span class="badge badge-amber">
+										{ fmt.Sprint(len(tareasPendientes(m.Tareas))) } pendientes
+									</span>
+								</header>
+
+								<!-- Lista de Tareas Pendientes -->
+								<div class="kanban-task-list">
+									if len(tareasPendientes(m.Tareas)) == 0 {
+										<div class="kanban-empty-state">
+											<i class="fa-regular fa-circle-check empty-icon" style="color: var(--color-green);"></i>
+											<span class="empty-title">Sin tareas pendientes</span>
+											<span class="empty-desc">Agrega una nueva tarea o revisa las completadas abajo.</span>
+										</div>
+									} else {
+										for _, t := range tareasPendientes(m.Tareas) {
+											<div class="task-card">
+												<div class="task-card-header">
+													<div class="task-name-group">
+														<span class="task-red-ring"></span>
+														<span class="task-title">{ t.Titulo }</span>
+													</div>
+													if t.FechaFinalizacion.Valid {
+														<span class="badge badge-blue">
+															<i class="fa-regular fa-clock"></i> { formatFecha(t.FechaFinalizacion) }
+														</span>
+													}
+												</div>
+
+												if t.Descripcion.Valid && t.Descripcion.String != "" {
+													<p style="font-size: 0.78rem; color: var(--color-text-muted); line-height: 1.4;">
+														{ t.Descripcion.String }
+													</p>
+												}
+
+												<!-- Checklist para completar la tarea -->
+												<form action={ templ.URL(fmt.Sprintf("/tareas/%d/completar", t.IDTarea)) } method="POST" class="task-checklist">
+													<label class="checklist-label">
+														<input
+															type="checkbox"
+															class="checklist-input"
+															onchange="this.form.submit()"
+														/>
+														<span>Marcar como completada</span>
+													</label>
+												</form>
+											</div>
+										}
+									}
+								</div>
+							</div>
+
+							<!-- Acordeón de Tareas Completadas -->
+							<details class="completed-accordion">
+								<summary class="completed-summary">
+									<span class="summary-left">
+										<i class="fa-solid fa-chevron-right"></i>
+										<span>Tareas Completadas</span>
+									</span>
+									<span class="summary-pill">{ fmt.Sprint(len(tareasCompletadas(m.Tareas))) }</span>
+								</summary>
+								<div class="completed-list">
+									if len(tareasCompletadas(m.Tareas)) == 0 {
+										<span style="color: var(--color-text-dim);">No hay tareas completadas aún.</span>
+									} else {
+										for _, tc := range tareasCompletadas(m.Tareas) {
+											<div class="completed-item">
+												<i class="fa-solid fa-check" style="color: var(--color-green); margin-right: 0.35rem;"></i>
+												<span>{ tc.Titulo }</span>
+											</div>
+										}
+									}
+								</div>
+							</details>
+						</article>
+					}
+				</div>
+			</section>
+		}
+
+		<!-- MODAL: AGREGAR MATERIA (#materia-modal) -->
+		<div id="materia-modal" class="modal">
+			<div class="modal-content">
+				<a href="#" class="modal-close-btn" title="Cerrar">&times;</a>
+				<header class="modal-header">
+					<i class="fa-solid fa-folder-plus"></i>
+					<span>Nueva Materia</span>
+				</header>
+				<form action="/materias" method="POST" class="modal-form">
+					<div class="form-group">
+						<label for="materia-titulo" class="form-label">
+							Nombre de la Materia <span class="req-star">*</span>
+						</label>
+						<input
+							type="text"
+							id="materia-titulo"
+							name="titulo"
+							required
+							placeholder="Ej: Programación Web"
+							class="form-control"
+						/>
+					</div>
+					<div class="modal-footer">
+						<a href="#" class="btn btn-outline">Cancelar</a>
+						<button type="submit" class="btn btn-primary">
+							<i class="fa-solid fa-floppy-disk"></i>
+							<span>Guardar Materia</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- MODAL: AGREGAR TAREA (#task-modal) -->
+		<div id="task-modal" class="modal">
+			<div class="modal-content">
+				<a href="#" class="modal-close-btn" title="Cerrar">&times;</a>
+				<header class="modal-header">
+					<i class="fa-solid fa-plus-circle"></i>
+					<span>Nueva Tarea</span>
+				</header>
+				<form action="/tareas" method="POST" class="modal-form">
+					<div class="form-group">
+						<label for="tarea-materia" class="form-label">
+							Materia <span class="req-star">*</span>
+						</label>
+						<select id="tarea-materia" name="id_lista" required class="form-control">
+							if len(materias) == 0 {
+								<option value="">Primero debes crear una materia</option>
+							} else {
+								<option value="">Seleccionar materia...</option>
+								for _, m := range materias {
+									<option value={ fmt.Sprint(m.Materia.IDLista) }>{ m.Materia.Titulo }</option>
+								}
+							}
+						</select>
+					</div>
+
+					<div class="form-group">
+						<label for="tarea-titulo" class="form-label">
+							Título de la Tarea <span class="req-star">*</span>
+						</label>
+						<input
+							type="text"
+							id="tarea-titulo"
+							name="titulo"
+							required
+							placeholder="Ej: Terminar vistas templ"
+							class="form-control"
+						/>
+					</div>
+
+					<div class="form-group">
+						<label for="tarea-desc" class="form-label">Descripción</label>
+						<textarea
+							id="tarea-desc"
+							name="descripcion"
+							rows="2"
+							placeholder="Detalles opcionales de la tarea..."
+							class="form-control"
+						></textarea>
+					</div>
+
+					<div class="form-grid-4" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+						<div class="form-group">
+							<label for="tarea-inicio" class="form-label">Fecha Inicio</label>
+							<input type="datetime-local" id="tarea-inicio" name="fecha_inicio" class="form-control"/>
+						</div>
+						<div class="form-group">
+							<label for="tarea-fin" class="form-label">Fecha Entrega</label>
+							<input type="datetime-local" id="tarea-fin" name="fecha_finalizacion" class="form-control"/>
+						</div>
+					</div>
+
+					<div class="modal-footer">
+						<a href="#" class="btn btn-outline">Cancelar</a>
+						<button type="submit" class="btn btn-primary" disabled?={ len(materias) == 0 }>
+							<i class="fa-solid fa-floppy-disk"></i>
+							<span>Guardar Tarea</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	}
+}

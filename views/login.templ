@@ -1,0 +1,86 @@
+package views
+
+// =============================================================================
+// VISTA DE LOGIN (login.templ)
+// =============================================================================
+// Página principal de la aplicación cuando no hay sesión activa.
+// No utiliza el dashboard base (LayoutBase) porque no hay sesión iniciada.
+// Al enviar el formulario (POST /login), el backend validará las credenciales
+// y redirigirá a /calendario.
+// =============================================================================
+
+templ LoginPage(emailPrellenado string, errorMsg string, successMsg string) {
+	@LayoutAuth("go_tasks - Iniciar Sesión") {
+		<main class="login-wrapper">
+			<div class="login-card">
+				<!-- Cabecera del Login -->
+				<header class="login-header">
+					<h1 class="login-logo brand-glow">go_tasks</h1>
+					<p class="login-subtitle">Ingresa a tu cuenta para continuar</p>
+				</header>
+
+				if successMsg != "" {
+					<div class="alert-error" style="background-color: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.45); color: #6ee7b7;">
+						<i class="fa-solid fa-circle-check"></i>
+						<span>{ successMsg }</span>
+					</div>
+				}
+
+				if errorMsg != "" {
+					<div class="alert-error">
+						<i class="fa-solid fa-circle-exclamation"></i>
+						<span>{ errorMsg }</span>
+					</div>
+				}
+
+				<!-- Formulario de Inicio de Sesión -->
+				<form action="/login" method="POST" class="login-form">
+					<div class="form-group">
+						<label for="login-email" class="form-label">
+							Correo Electrónico <span class="req-star">*</span>
+						</label>
+						<input
+							type="email"
+							id="login-email"
+							name="email"
+							value={ emailPrellenado }
+							required
+							placeholder="correo@ejemplo.com"
+							class="form-control"
+							autocomplete="email"
+						/>
+					</div>
+
+					<div class="form-group">
+						<label for="login-password" class="form-label">
+							Contraseña <span class="req-star">*</span>
+						</label>
+						<input
+							type="password"
+							id="login-password"
+							name="contrasena"
+							required
+							placeholder="••••••••••••"
+							class="form-control"
+							autocomplete="current-password"
+						/>
+					</div>
+
+					<button type="submit" class="btn btn-primary login-btn-submit">
+						<i class="fa-solid fa-arrow-right-to-bracket"></i>
+						<span>Iniciar Sesión</span>
+					</button>
+				</form>
+
+				<!-- Botón para ir al formulario de Creación de Usuario -->
+				<footer class="login-footer">
+					<p style="margin-bottom: 0.75rem;">¿No tienes una cuenta?</p>
+					<a href="/usuarios/nuevo" class="btn btn-outline" style="width: 100%; justify-content: center;">
+						<i class="fa-solid fa-user-plus"></i>
+						<span>Crear Nuevo Usuario</span>
+					</a>
+				</footer>
+			</div>
+		</main>
+	}
+}
