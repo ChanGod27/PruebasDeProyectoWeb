@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"ServidorEntregable/db"
-	"ServidorEntregable/view"
+	"ServidorEntregable/views"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -23,7 +23,7 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		if err := r.ParseForm(); err != nil {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			view.CreateUsuarioPage("Error al procesar el formulario de alta").Render(r.Context(), w)
+			views.CreateUsuarioPage("Error al procesar el formulario de alta").Render(r.Context(), w)
 			return
 		}
 
@@ -34,7 +34,7 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 
 		if newUsuario.Nombre == "" || newUsuario.Apellido == "" || newUsuario.Email == "" || newUsuario.Contrasena == "" {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			view.CreateUsuarioPage("Todos los campos son obligatorios y no pueden contener solo espacios").Render(r.Context(), w)
+			views.CreateUsuarioPage("Todos los campos son obligatorios y no pueden contener solo espacios").Render(r.Context(), w)
 			return
 		}
 
@@ -42,7 +42,7 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 		if err != nil {
 			log.Printf("ERROR BD al crear usuario: %v", err)
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
-			view.CreateUsuarioPage("No se pudo crear el usuario (posible email duplicado o error de BD)").Render(r.Context(), w)
+			views.CreateUsuarioPage("No se pudo crear el usuario (posible email duplicado o error de BD)").Render(r.Context(), w)
 			return
 		}
 
@@ -153,20 +153,20 @@ func UsuariosView(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	view.LayoutPrincipal(usuarios, usuarioActivoID, usuarioActivoNombre).Render(r.Context(), w)
+	views.LayoutPrincipal(usuarios, usuarioActivoID, usuarioActivoNombre).Render(r.Context(), w)
 }
 
 // CreateUsuarioView renderiza el formulario para añadir un nuevo usuario
 func CreateUsuarioView(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	view.CreateUsuarioPage("").Render(r.Context(), w)
+	views.CreateUsuarioPage("").Render(r.Context(), w)
 }
 
 // LoginView renderiza la pantalla para comprobar la contraseña del usuario seleccionado
 func LoginView(w http.ResponseWriter, r *http.Request) {
 	email := r.URL.Query().Get("email")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	view.LoginPage(email, "").Render(r.Context(), w)
+	views.LoginPage(email, "").Render(r.Context(), w)
 }
 
 // LoginSubmit valida la contraseña ingresada y redirige a la vista con el cartel del TP6
@@ -177,7 +177,7 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	u, err := q.GetUserByEmail(r.Context(), email)
 	if err != nil || u.Contrasena != contrasena {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		view.LoginPage(email, "Contraseña incorrecta o usuario no encontrado").Render(r.Context(), w)
+		views.LoginPage(email, "Contraseña incorrecta o usuario no encontrado").Render(r.Context(), w)
 		return
 	}
 
@@ -192,5 +192,5 @@ func TP6View(w http.ResponseWriter, r *http.Request) {
 		nombre = "Usuario"
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	view.TP6Aviso(nombre).Render(r.Context(), w)
+	views.TP6Aviso(nombre).Render(r.Context(), w)
 }

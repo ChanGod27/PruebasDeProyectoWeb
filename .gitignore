@@ -2,6 +2,10 @@
 /db/db.go
 /db/models.go
 /db/*.sql.go
+
+# Archivos .go generados en la carpeta views
+/views/*.go
+
 /bin
 *.log
 server.log
