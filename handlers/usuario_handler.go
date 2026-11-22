@@ -123,39 +123,6 @@ func GetUserById(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 // CONTROLADORES DE VISTAS (RENDER TEMPL)
 // ==========================================
 
-// UsuariosView carga la lista de usuarios desde la base de datos y renderiza layout.templ
-func UsuariosView(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	usuarios, err := q.ListUsers(r.Context())
-	if err != nil {
-		log.Printf("Aviso: No se pudo listar usuarios desde BD: %v", err)
-		usuarios = []db.Usuario{}
-	}
-
-	var usuarioActivoID int32
-	var usuarioActivoNombre string
-
-	// Identificar si viene un usuario recién creado (?creado=ID) o activo (?activo=ID)
-	creadoParam := r.URL.Query().Get("creado")
-	if creadoParam == "" {
-		creadoParam = r.URL.Query().Get("activo")
-	}
-
-	if creadoParam != "" {
-		if id64, err := strconv.ParseInt(creadoParam, 10, 32); err == nil {
-			usuarioActivoID = int32(id64)
-			for _, u := range usuarios {
-				if u.IDUsuario == usuarioActivoID {
-					usuarioActivoNombre = u.Nombre + " (" + u.Nombre + " " + string([]rune(u.Apellido)[0:1]) + ".)"
-					break
-				}
-			}
-		}
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	views.LayoutPrincipal(usuarios, usuarioActivoID, usuarioActivoNombre).Render(r.Context(), w)
-}
-
 // CreateUsuarioView renderiza el formulario para añadir un nuevo usuario
 func CreateUsuarioView(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -183,14 +150,4 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 
 	// Redirige con el nombre para mostrar el cartel de bienvenida y aviso TP6
 	http.Redirect(w, r, "/tp6?nombre="+u.Nombre, http.StatusSeeOther)
-}
-
-// TP6View muestra el cartel informativo para el próximo TP6
-func TP6View(w http.ResponseWriter, r *http.Request) {
-	nombre := r.URL.Query().Get("nombre")
-	if nombre == "" {
-		nombre = "Usuario"
-	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	views.TP6Aviso(nombre).Render(r.Context(), w)
 }

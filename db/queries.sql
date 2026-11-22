@@ -23,11 +23,6 @@ SELECT id_usuario, nombre, apellido, email
 FROM usuario
 WHERE id_usuario = $1;
 
--- name: ListUsers :many
-SELECT id_usuario, nombre, apellido, email, contrasena
-FROM usuario
-ORDER BY id_usuario ASC;
-
 
 /* =============================================================================
    2. MATERIAS (Lista de Tarea)

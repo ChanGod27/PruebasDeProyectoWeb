@@ -52,14 +52,6 @@ func main() {
 	// VISTAS TEMPL (HTML/CSS NATIVO)
 	// ==========================================
 
-	// Página principal: Lista de usuarios (layout.templ)
-	http.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.UsuariosView(w, r, queries)
-	})
-	http.HandleFunc("GET /usuarios", func(w http.ResponseWriter, r *http.Request) {
-		handlers.UsuariosView(w, r, queries)
-	})
-
 	// Formulario para crear nuevo usuario (create_usuario.templ)
 	http.HandleFunc("GET /usuarios/nuevo", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateUsuarioView(w, r)
@@ -71,17 +63,6 @@ func main() {
 	})
 	http.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LoginSubmit(w, r, queries)
-	})
-
-	// Aviso para funcionalidades de próxima entrega (TP6)
-	http.HandleFunc("GET /tp6", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TP6View(w, r)
-	})
-	http.HandleFunc("GET /calendario", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TP6View(w, r)
-	})
-	http.HandleFunc("GET /materias", func(w http.ResponseWriter, r *http.Request) {
-		handlers.TP6View(w, r)
 	})
 
 	// Handlers que conectan las operaciones crud
