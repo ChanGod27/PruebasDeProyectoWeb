@@ -57,12 +57,20 @@ start_server() {
     docker compose up -d db
     wait_for_db
 
-    # 3. Generar código con sqlc
+    # 3a. Generar código con sqlc
     if command -v sqlc >/dev/null 2>&1; then
         echo "2. Generando código con sqlc..."
         sqlc generate
     else
         echo "⚠ Advertencia: sqlc no está instalado o no se encuentra en el PATH."
+    fi
+
+    # 3b. Generar vistas con templ
+    if command -v templ >/dev/null 2>&1; then
+        echo "3. Generando vistas con templ..."
+        templ generate
+    else
+        echo "⚠ Advertencia: templ no está instalado o no se encuentra en el PATH."
     fi
 
     # 4. Compilar el servidor Go
