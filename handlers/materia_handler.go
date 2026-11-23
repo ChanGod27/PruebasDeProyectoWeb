@@ -13,90 +13,83 @@ import (
 )
 
 func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-
-	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
-		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-		if err != nil {
-			RedirigirSinSesion(w, r)
-			return
-		}
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Error al procesar el formulario de materia", http.StatusBadRequest)
-			return
-		}
-
-		titulo := strings.TrimSpace(r.FormValue("titulo"))
-		if titulo == "" {
-			http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
-			return
-		}
-
-		_, err = q.CreateMateria(r.Context(), db.CreateMateriaParams{
-			IDUsuario: idUsuario,
-			Titulo:    titulo,
-		})
-		if err != nil {
-			log.Printf("ERROR BD al crear materia para usuario #%d: %v", idUsuario, err)
-			http.Error(w, "Error al crear la materia", http.StatusInternalServerError)
-			return
-		}
-
-		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
 		return
 	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error al procesar el formulario de materia", http.StatusBadRequest)
+		return
+	}
+
+	titulo := strings.TrimSpace(r.FormValue("titulo"))
+	if titulo == "" {
+		http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
+		return
+	}
+
+	_, err = q.CreateMateria(r.Context(), db.CreateMateriaParams{
+		IDUsuario: idUsuario,
+		Titulo:    titulo,
+	})
+	if err != nil {
+		log.Printf("ERROR BD al crear materia para usuario #%d: %v", idUsuario, err)
+		http.Error(w, "Error al crear la materia", http.StatusInternalServerError)
+		return
+	}
+
+	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
 func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
-		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-		if err != nil {
-			RedirigirSinSesion(w, r)
-			return
-		}
-
-		parsed, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
-		if err != nil || parsed <= 0 {
-			http.Error(w, "El ID de materia debe ser válido", http.StatusBadRequest)
-			return
-		}
-		idMateria := int32(parsed)
-
-		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
-		if err != nil {
-			log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
-			http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
-			return
-		}
-		if !pertenece {
-			http.Error(w, "No tienes permiso para editar esta materia", http.StatusForbidden)
-			return
-		}
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Error al procesar el formulario de edición", http.StatusBadRequest)
-			return
-		}
-
-		titulo := strings.TrimSpace(r.FormValue("titulo"))
-		if titulo == "" {
-			http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
-			return
-		}
-
-		_, err = q.UpdateMateria(r.Context(), db.UpdateMateriaParams{
-			IDLista: idMateria,
-			Titulo:  titulo,
-		})
-		if err != nil {
-			log.Printf("ERROR BD al actualizar materia #%d: %v", idMateria, err)
-			http.Error(w, "Error al actualizar la materia", http.StatusInternalServerError)
-			return
-		}
-
-		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
 		return
 	}
+
+	parsed, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+	if err != nil || parsed <= 0 {
+		http.Error(w, "El ID de materia debe ser válido", http.StatusBadRequest)
+		return
+	}
+	idMateria := int32(parsed)
+
+	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
+		http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
+		return
+	}
+	if !pertenece {
+		http.Error(w, "No tienes permiso para editar esta materia", http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error al procesar el formulario de edición", http.StatusBadRequest)
+		return
+	}
+
+	titulo := strings.TrimSpace(r.FormValue("titulo"))
+	if titulo == "" {
+		http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
+		return
+	}
+
+	_, err = q.UpdateMateria(r.Context(), db.UpdateMateriaParams{
+		IDLista: idMateria,
+		Titulo:  titulo,
+	})
+	if err != nil {
+		log.Printf("ERROR BD al actualizar materia #%d: %v", idMateria, err)
+		http.Error(w, "Error al actualizar la materia", http.StatusInternalServerError)
+		return
+	}
+
+	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
 func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
@@ -110,34 +103,30 @@ func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 
 	idMateria := int32(parsed)
 
-	if r.Header.Get("HX-Request") == "true" {
-		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-		if err != nil {
-			RedirigirSinSesion(w, r)
-			return
-		}
-
-		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
-		if err != nil {
-			log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
-			http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
-			return
-		}
-		if !pertenece {
-			http.Error(w, "No tienes permiso para eliminar esta materia", http.StatusForbidden)
-			return
-		}
-
-		if err := q.DeleteMateria(r.Context(), idMateria); err != nil {
-			log.Printf("ERROR BD al eliminar materia #%d: %v", idMateria, err)
-			http.Error(w, "Error al eliminar la materia", http.StatusInternalServerError)
-			return
-		}
-
-		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
 		return
 	}
 
+	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
+		http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
+		return
+	}
+	if !pertenece {
+		http.Error(w, "No tienes permiso para eliminar esta materia", http.StatusForbidden)
+		return
+	}
+
+	if err := q.DeleteMateria(r.Context(), idMateria); err != nil {
+		log.Printf("ERROR BD al eliminar materia #%d: %v", idMateria, err)
+		http.Error(w, "Error al eliminar la materia", http.StatusInternalServerError)
+		return
+	}
+
+	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
 func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32) ([]views.MateriaConTareas, error) {

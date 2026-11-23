@@ -26,74 +26,70 @@ func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
 }
 
 func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-
-	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
-		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-		if err != nil {
-			RedirigirSinSesion(w, r)
-			return
-		}
-
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, "Error al procesar el formulario del cronómetro", http.StatusBadRequest)
-			return
-		}
-
-		idTarea64, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("id_tarea")), 10, 32)
-		if err != nil || idTarea64 <= 0 {
-			http.Error(w, "Debes seleccionar una tarea válida", http.StatusBadRequest)
-			return
-		}
-		idTarea := int32(idTarea64)
-
-		tarea, err := q.GetTareaByID(r.Context(), idTarea)
-		if err != nil {
-			http.Error(w, "Tarea no encontrada", http.StatusNotFound)
-			return
-		}
-
-		// Seguridad (ownership): verificar que la tarea pertenezca a una materia del usuario logueado.
-		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
-		if err != nil {
-			log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
-			http.Error(w, "Error al validar permisos sobre la tarea", http.StatusInternalServerError)
-			return
-		}
-		if !pertenece {
-			http.Error(w, "No tienes permiso para registrar horas en esta tarea", http.StatusForbidden)
-			return
-		}
-
-		tsInicio, err := parseTimestampISO(r.FormValue("timestamp_inicio"))
-		if err != nil {
-			http.Error(w, "Timestamp de inicio inválido", http.StatusBadRequest)
-			return
-		}
-
-		tsFin, err := parseTimestampISO(r.FormValue("timestamp_fin"))
-		if err != nil {
-			http.Error(w, "Timestamp de fin inválido", http.StatusBadRequest)
-			return
-		}
-
-		_, err = q.CreateHorasTrabajadas(r.Context(), db.CreateHorasTrabajadasParams{
-			IDTarea:         idTarea,
-			TimestampInicio: tsInicio,
-			TimestampFin:    tsFin,
-		})
-		if err != nil {
-			log.Printf("ERROR BD al guardar horas trabajadas en tarea #%d: %v", idTarea, err)
-			http.Error(w, "Error al guardar el tiempo trabajado", http.StatusInternalServerError)
-			return
-		}
-
-		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
 		return
 	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error al procesar el formulario del cronómetro", http.StatusBadRequest)
+		return
+	}
+
+	idTarea64, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("id_tarea")), 10, 32)
+	if err != nil || idTarea64 <= 0 {
+		http.Error(w, "Debes seleccionar una tarea válida", http.StatusBadRequest)
+		return
+	}
+	idTarea := int32(idTarea64)
+
+	tarea, err := q.GetTareaByID(r.Context(), idTarea)
+	if err != nil {
+		http.Error(w, "Tarea no encontrada", http.StatusNotFound)
+		return
+	}
+
+	// Seguridad (ownership): verificar que la tarea pertenezca a una materia del usuario logueado.
+	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
+		http.Error(w, "Error al validar permisos sobre la tarea", http.StatusInternalServerError)
+		return
+	}
+	if !pertenece {
+		http.Error(w, "No tienes permiso para registrar horas en esta tarea", http.StatusForbidden)
+		return
+	}
+
+	tsInicio, err := parseTimestampISO(r.FormValue("timestamp_inicio"))
+	if err != nil {
+		http.Error(w, "Timestamp de inicio inválido", http.StatusBadRequest)
+		return
+	}
+
+	tsFin, err := parseTimestampISO(r.FormValue("timestamp_fin"))
+	if err != nil {
+		http.Error(w, "Timestamp de fin inválido", http.StatusBadRequest)
+		return
+	}
+
+	_, err = q.CreateHorasTrabajadas(r.Context(), db.CreateHorasTrabajadasParams{
+		IDTarea:         idTarea,
+		TimestampInicio: tsInicio,
+		TimestampFin:    tsFin,
+	})
+	if err != nil {
+		log.Printf("ERROR BD al guardar horas trabajadas en tarea #%d: %v", idTarea, err)
+		http.Error(w, "Error al guardar el tiempo trabajado", http.StatusInternalServerError)
+		return
+	}
+
+	renderCalendarioActualizado(w, r, q, rdb, idUsuario)
 }
 
 // DeleteHorasTrabajadas elimina un registro de horas trabajadas.
-// Si proviene de HTMX, valida sesión en Redis, verifica propiedad y devuelve el calendario actualizado.
+// Valida sesión en Redis, verifica propiedad y devuelve el calendario actualizado.
 func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
@@ -104,37 +100,32 @@ func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 	}
 	idHoras := int32(parsed)
 
-	if r.Header.Get("HX-Request") == "true" {
-		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-		if err != nil {
-			RedirigirSinSesion(w, r)
-			return
-		}
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
+		return
+	}
 
-		// Seguridad (ownership): confirmar que el registro de horas pertenezca a una tarea del usuario.
-		materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
-		if err != nil {
-			log.Printf("ERROR BD al validar propiedad de horas #%d: %v", idHoras, err)
-			http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
-			return
-		}
+	// Seguridad (ownership): confirmar que el registro de horas pertenezca a una tarea del usuario.
+	materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al validar propiedad de horas #%d: %v", idHoras, err)
+		http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
+		return
+	}
 
-		pertenece := false
-		for _, m := range materiasConTareas {
-			for _, t := range m.Tareas {
-				horas, err := q.ListHorasByTarea(r.Context(), t.IDTarea)
-				if err != nil {
-					log.Printf("ERROR BD al listar horas de tarea #%d: %v", t.IDTarea, err)
-					http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
-					return
-				}
-				for _, h := range horas {
-					if h.IDHoras == idHoras {
-						pertenece = true
-						break
-					}
-				}
-				if pertenece {
+	pertenece := false
+	for _, m := range materiasConTareas {
+		for _, t := range m.Tareas {
+			horas, err := q.ListHorasByTarea(r.Context(), t.IDTarea)
+			if err != nil {
+				log.Printf("ERROR BD al listar horas de tarea #%d: %v", t.IDTarea, err)
+				http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
+				return
+			}
+			for _, h := range horas {
+				if h.IDHoras == idHoras {
+					pertenece = true
 					break
 				}
 			}
@@ -142,20 +133,21 @@ func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 				break
 			}
 		}
-
-		if !pertenece {
-			http.Error(w, "No tienes permiso para eliminar este registro de horas", http.StatusForbidden)
-			return
+		if pertenece {
+			break
 		}
+	}
 
-		if err := q.DeleteHorasTrabajadas(r.Context(), idHoras); err != nil {
-			log.Printf("ERROR BD al eliminar horas #%d: %v", idHoras, err)
-			http.Error(w, "Error al eliminar el registro de horas", http.StatusInternalServerError)
-			return
-		}
-
-		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
+	if !pertenece {
+		http.Error(w, "No tienes permiso para eliminar este registro de horas", http.StatusForbidden)
 		return
 	}
 
+	if err := q.DeleteHorasTrabajadas(r.Context(), idHoras); err != nil {
+		log.Printf("ERROR BD al eliminar horas #%d: %v", idHoras, err)
+		http.Error(w, "Error al eliminar el registro de horas", http.StatusInternalServerError)
+		return
+	}
+
+	renderCalendarioActualizado(w, r, q, rdb, idUsuario)
 }

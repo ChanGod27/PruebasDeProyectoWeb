@@ -39,7 +39,6 @@ func main() {
 	}
 
 	// Servidor de archivos estáticos
-	staticDir := "./static"
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
 
 	// ==========================================
@@ -128,8 +127,6 @@ func main() {
 	})
 
 	port := ":8080"
-	fmt.Printf("Servidor ESTÁTICO escuchando en http://localhost%s\n", port)
-	fmt.Printf("Sirviendo archivos desde: %s\n", staticDir)
 
 	err := http.ListenAndServe(port, nil)
 	if err != nil {

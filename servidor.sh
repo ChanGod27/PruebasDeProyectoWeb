@@ -115,8 +115,7 @@ start_server() {
             exit 1
         fi
 
-        if curl -s "http://localhost:$PORT/" >/dev/null 2>&1 \
-           || curl -s "http://localhost:$PORT/usuarios" >/dev/null 2>&1; then
+        if curl -s "http://localhost:$PORT/" >/dev/null 2>&1; then
             started=true
             break
         fi
