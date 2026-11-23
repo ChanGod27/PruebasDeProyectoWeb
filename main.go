@@ -68,6 +68,11 @@ func main() {
 		handlers.LoginSubmit(w, r, queries, rdb)
 	})
 
+	// Perfil del usuario activo (usuario.templ)
+	http.HandleFunc("GET /usuario", func(w http.ResponseWriter, r *http.Request) {
+		handlers.UsuarioView(w, r, queries, rdb)
+	})
+
 	// Handlers que conectan las operaciones crud
 	// Usuarios
 	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {

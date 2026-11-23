@@ -89,7 +89,7 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
 
 ### Fase 3 — Vista de Usuario Activo (`handlers/usuario_handler.go`)
 
-- [ ] **3.1. Crear `UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /usuario`**
+- [x] **3.1. Crear `UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /usuario`**
   - Llamar a `idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)`.
   - Si `err != nil` → llamar a `RedirigirSinSesion(w, r)` y `return`.
   - Consultar `uRow, err := q.GetUserByID(r.Context(), idUsuario)`.

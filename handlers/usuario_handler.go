@@ -211,3 +211,39 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 
 	http.Redirect(w, r, "/calendario", http.StatusSeeOther)
 }
+
+// UsuarioView renderiza el perfil con los datos del usuario autenticado en Redis.
+// Soporta carga completa (LayoutBase) y navegación interna por HTMX (UsuarioContent).
+func UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
+	// 1. Verificar sesión activa en Redis; si no hay sesión o expiró, redirigir a /login.
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
+		return
+	}
+
+	// 2. Consultar los datos actuales del usuario en PostgreSQL (sin traer la contraseña).
+	uRow, err := q.GetUserByID(r.Context(), idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al obtener usuario activo #%d: %v", idUsuario, err)
+		CerrarSesionRedis(r.Context(), w, r, rdb)
+		RedirigirSinSesion(w, r)
+		return
+	}
+
+	// 3. Mapear GetUserByIDRow a db.Usuario (la vista solo muestra ID, nombre, apellido y email).
+	usuario := db.Usuario{
+		IDUsuario: uRow.IDUsuario,
+		Nombre:    uRow.Nombre,
+		Apellido:  uRow.Apellido,
+		Email:     uRow.Email,
+	}
+
+	// 4. Devolver solo el fragmento #main-content si viene de HTMX, o la página completa si es carga directa / F5.
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if r.Header.Get("HX-Request") == "true" {
+		views.UsuarioContent(usuario).Render(r.Context(), w)
+		return
+	}
+	views.UsuarioPage(usuario).Render(r.Context(), w)
+}
