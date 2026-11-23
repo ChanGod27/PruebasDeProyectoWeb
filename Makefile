@@ -1,25 +1,16 @@
-.PHONY: clean generate start stop stop-all restart status logs
-
-clean:
-	docker compose down -v --remove-orphans
+.PHONY: generate templ start stop restart
 
 generate:
 	sqlc generate
 
-start: generate
-	./tests/server.sh start
+templ:
+	templ generate
+
+start:
+	./servidor.sh start
 
 stop:
-	./tests/server.sh stop
-
-stop-all:
-	./tests/server.sh stop-all
+	./servidor.sh stop
 
 restart:
-	./tests/server.sh restart
-
-status:
-	./tests/server.sh status
-
-logs:
-	./tests/server.sh logs
+	./servidor.sh restart
