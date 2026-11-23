@@ -24,7 +24,8 @@ type DiaCalendario struct {
 
 type EventoCalendario struct {
 	IDTarea      int32
-	IDHoras      int32 // > 0 cuando corresponde a un registro de horas trabajadas
+	IDHoras      int32  // > 0 cuando corresponde a un registro de horas trabajadas
+	Tipo         string // "inicio" (verde), "fin" (rojo), "horas" (azul)
 	Titulo       string
 	DiaIndex     int // 0 = Lunes .. 5 = Sábado
 	Hora         int // 8 .. 21
@@ -164,7 +165,7 @@ templ CalendarioContent(tareas []db.Tarea, dias []DiaCalendario, eventos []Event
 							<div class="cal-slot-cell">
 								for _, ev := range eventos {
 									if ev.DiaIndex == diaIdx && ev.Hora == hora {
-										<div class="cal-event-pill" title={ ev.Titulo }>
+										<div class={ "cal-event-pill", templ.KV("event-inicio", ev.Tipo == "inicio"), templ.KV("event-fin", ev.Tipo == "fin") } title={ ev.Titulo }>
 											<div class="event-title-line" style="justify-content: space-between;">
 												<span style="display: inline-flex; align-items: center; gap: 0.35rem;">
 													<span class="event-dot-white"></span>

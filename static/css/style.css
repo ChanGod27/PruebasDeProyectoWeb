@@ -456,6 +456,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
 }
 
 .form-label {
@@ -470,6 +471,7 @@ body {
 
 .form-control {
   width: 100%;
+  min-width: 0;
   background-color: var(--color-input);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -717,6 +719,9 @@ select.form-control option {
   padding: 0.35rem;
   min-height: 52px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   transition: background-color 0.15s ease;
 }
 
@@ -734,6 +739,22 @@ select.form-control option {
   border: 1px solid rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition: transform 0.15s ease;
+}
+
+.cal-event-pill.event-inicio {
+  background-color: #16a34a;
+}
+
+.cal-event-pill.event-inicio .event-time-range {
+  color: #bbf7d0;
+}
+
+.cal-event-pill.event-fin {
+  background-color: #dc2626;
+}
+
+.cal-event-pill.event-fin .event-time-range {
+  color: #fecaca;
 }
 
 .cal-event-pill:hover {

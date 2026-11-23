@@ -55,32 +55,41 @@ func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) 
 		for _, t := range m.Tareas {
 			todasTareas = append(todasTareas, t)
 
-			// 1. Pintar la tarea en el calendario si su entrega (o inicio) cae dentro de esta semana.
-			var fechaRef time.Time
-			var tieneFecha bool
-			if t.FechaFinalizacion.Valid {
-				fechaRef = normalizarWallTime(t.FechaFinalizacion.Time)
-				tieneFecha = true
-			} else if t.FechaInicio.Valid {
-				fechaRef = normalizarWallTime(t.FechaInicio.Time)
-				tieneFecha = true
+			// 1a. Pintar la fecha de inicio de la tarea (en verde) si cae dentro de esta semana.
+			if t.FechaInicio.Valid {
+				fechaIni := normalizarWallTime(t.FechaInicio.Time)
+				if !fechaIni.Before(inicioSemana) && fechaIni.Before(finSemana) {
+					diaIdx := int(fechaIni.Sub(inicioSemana).Hours()) / 24
+					if diaIdx >= 0 && diaIdx < 6 {
+						eventos = append(eventos, views.EventoCalendario{
+							IDTarea:      t.IDTarea,
+							Tipo:         "inicio",
+							Titulo:       t.Titulo,
+							DiaIndex:     diaIdx,
+							Hora:         ajustarHoraGrilla(fechaIni.Hour()),
+							RangoHorario: fmt.Sprintf("Inicio %02d:%02d", fechaIni.Hour(), fechaIni.Minute()),
+						})
+						eventosPorDia[diaIdx]++
+					}
+				}
 			}
 
-			if tieneFecha && !fechaRef.Before(inicioSemana) && fechaRef.Before(finSemana) {
-				diaIdx := int(fechaRef.Sub(inicioSemana).Hours()) / 24
-				if diaIdx >= 0 && diaIdx < 6 {
-					etiquetaHora := fmt.Sprintf("Entrega %02d:%02d", fechaRef.Hour(), fechaRef.Minute())
-					if !t.FechaFinalizacion.Valid && t.FechaInicio.Valid {
-						etiquetaHora = fmt.Sprintf("Inicio %02d:%02d", fechaRef.Hour(), fechaRef.Minute())
+			// 1b. Pintar la fecha de finalización de la tarea (en rojo) si cae dentro de esta semana.
+			if t.FechaFinalizacion.Valid {
+				fechaFin := normalizarWallTime(t.FechaFinalizacion.Time)
+				if !fechaFin.Before(inicioSemana) && fechaFin.Before(finSemana) {
+					diaIdx := int(fechaFin.Sub(inicioSemana).Hours()) / 24
+					if diaIdx >= 0 && diaIdx < 6 {
+						eventos = append(eventos, views.EventoCalendario{
+							IDTarea:      t.IDTarea,
+							Tipo:         "fin",
+							Titulo:       t.Titulo,
+							DiaIndex:     diaIdx,
+							Hora:         ajustarHoraGrilla(fechaFin.Hour()),
+							RangoHorario: fmt.Sprintf("Entrega %02d:%02d", fechaFin.Hour(), fechaFin.Minute()),
+						})
+						eventosPorDia[diaIdx]++
 					}
-					eventos = append(eventos, views.EventoCalendario{
-						IDTarea:      t.IDTarea,
-						Titulo:       t.Titulo,
-						DiaIndex:     diaIdx,
-						Hora:         ajustarHoraGrilla(fechaRef.Hour()),
-						RangoHorario: etiquetaHora,
-					})
-					eventosPorDia[diaIdx]++
 				}
 			}
 
@@ -111,6 +120,7 @@ func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) 
 				eventos = append(eventos, views.EventoCalendario{
 					IDTarea:      t.IDTarea,
 					IDHoras:      h.IDHoras,
+					Tipo:         "horas",
 					Titulo:       "⏱ " + t.Titulo,
 					DiaIndex:     diaIdx,
 					Hora:         ajustarHoraGrilla(ini.Hour()),

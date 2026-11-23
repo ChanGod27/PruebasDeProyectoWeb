@@ -360,7 +360,7 @@ templ MateriasContent(materias []MateriaConTareas) {
 					></textarea>
 				</div>
 
-				<div class="form-grid-4" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+				<div class="form-grid-4" style="grid-template-columns: 1fr; gap: 0.75rem;">
 					<div class="form-group">
 						<label for="tarea-inicio" class="form-label">Fecha Inicio</label>
 						<input type="datetime-local" id="tarea-inicio" name="fecha_inicio" class="form-control"/>
@@ -461,7 +461,7 @@ templ MateriasContent(materias []MateriaConTareas) {
 							>{ t.Descripcion.String }</textarea>
 						</div>
 
-						<div class="form-grid-4" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+						<div class="form-grid-4" style="grid-template-columns: 1fr; gap: 0.75rem;">
 							<div class="form-group">
 								<label for={ fmt.Sprintf("edit-tarea-inicio-%d", t.IDTarea) } class="form-label">Fecha Inicio</label>
 								<input
