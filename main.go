@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	// Conexion con la base de datos
+	// Conexion con instancia de postgreSQL
 	ctx := context.Background()
 
 	connStr := "postgres://trabajo_web:carlos-luca-hermes@localhost:5432/go_tasks_db?sslmode=disable"
@@ -25,7 +25,7 @@ func main() {
 	// Instanciar objeto de la base de datos (userRepository)
 	queries := db.New(conn)
 
-	// Conecta a la instancia Redis en localhost:6379.
+	// Conecta a la instancia  de Redis
 	rdb, errRedis := db.AbrirRedis(ctx, "localhost:6379")
 	if errRedis != nil {
 		fmt.Printf("ADVERTENCIA: no se pudo conectar a Redis (sesiones deshabilitadas): %v\n", errRedis)
@@ -38,12 +38,16 @@ func main() {
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
 
 	// ==========================================
-	// VISTAS TEMPL (HTML/CSS NATIVO)
+	// HANDLERS
 	// ==========================================
 
 	// Formulario para crear nuevo usuario (create_usuario.templ)
 	http.HandleFunc("GET /usuarios/nuevo", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateUsuarioView(w, r)
+	})
+
+	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateUsuario(w, r, queries)
 	})
 
 	// Inicio de sesión (login.templ) — página principal y ruta /login
@@ -72,52 +76,52 @@ func main() {
 		handlers.MateriasView(w, r, queries, rdb)
 	})
 
-	// Handlers que conectan las operaciones crud
-	// Usuarios
-	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreateUsuario(w, r, queries)
-	})
-
-	// Materias
+	// Creacion de Materias
 	http.HandleFunc("POST /materias", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateMateria(w, r, queries, rdb)
 	})
 
+	//Actualizacion de Materias
 	http.HandleFunc("PUT /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.PutUpdateMateria(w, r, queries, rdb)
 	})
+
+	//Eliminacion de Materias
 	http.HandleFunc("DELETE /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeleteMateria(w, r, queries, rdb)
 	})
 
-	// Tareas
+	//Creacion de Tareas
 	http.HandleFunc("POST /tareas", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateTarea(w, r, queries, rdb)
 	})
+
+	//Completar Tareas
 	http.HandleFunc("POST /tareas/{id}/completar", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CompletarTarea(w, r, queries, rdb)
 	})
 
+	//Actualizacion de Tareas
 	http.HandleFunc("PUT /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.PutUpdateTarea(w, r, queries, rdb)
 	})
+
+	//Eliminacion de Tareas
 	http.HandleFunc("DELETE /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeleteTarea(w, r, queries, rdb)
 	})
 
-	// Horas
+	//Creacion de Horas
 	http.HandleFunc("POST /horas_trabajadas", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateHorasTrabajadas(w, r, queries, rdb)
 	})
 
+	//Eliminacion de Horas
 	http.HandleFunc("DELETE /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeleteHorasTrabajadas(w, r, queries, rdb)
 	})
 
-	// =========================================================================
-	// AGREGADO PARA REDIS: RUTAS ESPECÍFICAS DE SESIÓN EN REDIS
-	// =========================================================================
-	// GET /logout: elimina la clave de sesión en Redis, borra la cookie y redirige a /login.
+	// Salir de la Sesion
 	http.HandleFunc("GET /logout", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LogoutRedisHandler(w, r, rdb)
 	})
