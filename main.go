@@ -73,6 +73,11 @@ func main() {
 		handlers.UsuarioView(w, r, queries, rdb)
 	})
 
+	// Dashboard de calendario y cronómetro (calendario.templ)
+	http.HandleFunc("GET /calendario", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CalendarioView(w, r, queries, rdb)
+	})
+
 	// Tablero de materias y tareas (materias.templ)
 	http.HandleFunc("GET /materias", func(w http.ResponseWriter, r *http.Request) {
 		handlers.MateriasView(w, r, queries, rdb)
@@ -129,7 +134,10 @@ func main() {
 
 	// Horas
 	http.HandleFunc("POST /horas", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreateHorasTrabajadas(w, r, queries)
+		handlers.CreateHorasTrabajadas(w, r, queries, rdb)
+	})
+	http.HandleFunc("POST /horas_trabajadas", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CreateHorasTrabajadas(w, r, queries, rdb)
 	})
 	http.HandleFunc("GET /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetListHorasByTarea(w, r, queries)

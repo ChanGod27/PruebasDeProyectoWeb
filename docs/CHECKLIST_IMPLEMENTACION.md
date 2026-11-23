@@ -138,7 +138,7 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
 
 ### Fase 5 — Calendario y Cronómetro (`handlers/horas_trabajadas_handler.go` / nuevo `handlers/calendario_handler.go`)
 
-- [ ] **5.1. Crear `CalendarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /calendario`**
+- [x] **5.1. Crear `CalendarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /calendario`**
   - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion`.
   - Obtener la lista de tareas del usuario (las no completadas alimentan el `<select>` del cronómetro en `calendario.templ`).
   - Calcular el rango de la semana actual (Lunes a Sábado, acorde a las 6 columnas de días de `calendario.templ`).
@@ -146,7 +146,7 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
   - Chequear `r.Header.Get("HX-Request") == "true"`:
     - Si es `true` → `views.CalendarioContent(tareas, dias, eventos)`.
     - Si es `false` → consultar `q.GetUserByID` y renderizar `views.CalendarioPage(usuario, tareas, dias, eventos)`.
-- [ ] **5.2. Alinear la ruta del cronómetro y adaptar `CreateHorasTrabajadas`**
+- [x] **5.2. Alinear la ruta del cronómetro y adaptar `CreateHorasTrabajadas`**
   - Nota importante: `views/calendario.templ` envía el formulario del cronómetro a `POST /horas_trabajadas`, mientras que `main.go` hoy registra `POST /horas`. Elegir una sola ruta (lo más simple sin tocar `views/` es registrar `POST /horas_trabajadas` en `main.go` apuntando al mismo handler, manteniendo `POST /horas` si las pruebas Hurl la usan).
   - En `CreateHorasTrabajadas`, agregar rama `application/x-www-form-urlencoded` (manteniendo la rama JSON):
     - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion`.

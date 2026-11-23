@@ -3,20 +3,100 @@ package handlers
 import (
 	"ServidorEntregable/db"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/redis/go-redis/v9"
 )
 
 // ==========================================
 // 4. OPERACIONES DE HORAS (db.HorasTrabajada)
 // ==========================================
 
-func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
+	valor = strings.TrimSpace(valor)
+	t, err := time.Parse(time.RFC3339Nano, valor)
+	if err != nil {
+		return pgtype.Timestamp{}, err
+	}
+	return pgtype.Timestamp{Time: t.In(time.Local), Valid: true}, nil
+}
+
+// CreateHorasTrabajadas registra una sesión del cronómetro. Soporta formulario HTML/HTMX
+// (#timer-save-form en calendario.templ, validando sesión y propiedad) y JSON (API REST).
+func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	var newHoras db.CreateHorasTrabajadasParams
 
+	// 1. Caso envío desde Formulario HTML o HTMX (módulo cronómetro en calendario.templ)
+	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error al procesar el formulario del cronómetro", http.StatusBadRequest)
+			return
+		}
+
+		idTarea64, err := strconv.ParseInt(strings.TrimSpace(r.FormValue("id_tarea")), 10, 32)
+		if err != nil || idTarea64 <= 0 {
+			http.Error(w, "Debes seleccionar una tarea válida", http.StatusBadRequest)
+			return
+		}
+		idTarea := int32(idTarea64)
+
+		tarea, err := q.GetTareaByID(r.Context(), idTarea)
+		if err != nil {
+			http.Error(w, "Tarea no encontrada", http.StatusNotFound)
+			return
+		}
+
+		// Seguridad (ownership): verificar que la tarea pertenezca a una materia del usuario logueado.
+		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al validar permisos sobre la tarea", http.StatusInternalServerError)
+			return
+		}
+		if !pertenece {
+			http.Error(w, "No tienes permiso para registrar horas en esta tarea", http.StatusForbidden)
+			return
+		}
+
+		tsInicio, err := parseTimestampISO(r.FormValue("timestamp_inicio"))
+		if err != nil {
+			http.Error(w, "Timestamp de inicio inválido", http.StatusBadRequest)
+			return
+		}
+
+		tsFin, err := parseTimestampISO(r.FormValue("timestamp_fin"))
+		if err != nil {
+			http.Error(w, "Timestamp de fin inválido", http.StatusBadRequest)
+			return
+		}
+
+		_, err = q.CreateHorasTrabajadas(r.Context(), db.CreateHorasTrabajadasParams{
+			IDTarea:         idTarea,
+			TimestampInicio: tsInicio,
+			TimestampFin:    tsFin,
+		})
+		if err != nil {
+			log.Printf("ERROR BD al guardar horas trabajadas en tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al guardar el tiempo trabajado", http.StatusInternalServerError)
+			return
+		}
+
+		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
+		return
+	}
+
+	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
 	err := json.NewDecoder(r.Body).Decode(&newHoras)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
