@@ -29,9 +29,7 @@ func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
 // CreateHorasTrabajadas registra una sesión del cronómetro. Soporta formulario HTML/HTMX
 // (#timer-save-form en calendario.templ, validando sesión y propiedad) y JSON (API REST).
 func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	var newHoras db.CreateHorasTrabajadasParams
 
-	// 1. Caso envío desde Formulario HTML o HTMX (módulo cronómetro en calendario.templ)
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 		if err != nil {
@@ -95,28 +93,6 @@ func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
 		return
 	}
-
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	err := json.NewDecoder(r.Body).Decode(&newHoras)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if newHoras.IDTarea <= 0 {
-		http.Error(w, "El ID de la tarea es obligatorio", http.StatusBadRequest)
-		return
-	}
-
-	horasCreadas, err := q.CreateHorasTrabajadas(r.Context(), newHoras)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(horasCreadas)
 }
 
 func GetListHorasByTarea(w http.ResponseWriter, r *http.Request, q *db.Queries) {

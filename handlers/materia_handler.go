@@ -20,9 +20,7 @@ import (
 // CreateMateria procesa la creación de una materia. Soporta formulario HTML/HTMX
 // (tomando el IDUsuario desde la sesión en Redis) y JSON (API REST).
 func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	var newMateria db.CreateMateriaParams
 
-	// 1. Caso envío desde Formulario HTML o HTMX (#materia-modal en materias.templ)
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 		if err != nil {
@@ -54,28 +52,6 @@ func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 		return
 	}
-
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	err := json.NewDecoder(r.Body).Decode(&newMateria)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if strings.TrimSpace(newMateria.Titulo) == "" || newMateria.IDUsuario <= 0 {
-		http.Error(w, "Todos los campos son obligatorios y no pueden contener solo espacios", http.StatusBadRequest)
-		return
-	}
-
-	materiaCreada, err := q.CreateMateria(r.Context(), newMateria)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(materiaCreada)
 }
 
 func GetListMateriasByUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
@@ -103,7 +79,6 @@ func GetListMateriasByUsuario(w http.ResponseWriter, r *http.Request, q *db.Quer
 // PutUpdateMateria actualiza el título de una materia.
 // Soporta formulario HTMX (con sesión Redis y validación de propiedad) y JSON (API REST).
 func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	// 1. Caso envío desde Formulario HTML o HTMX (#edit-materia-{id} en materias.templ)
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 		if err != nil {
@@ -153,31 +128,6 @@ func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb
 		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 		return
 	}
-
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	var MateriaRecibida db.UpdateMateriaParams
-
-	err := json.NewDecoder(r.Body).Decode(&MateriaRecibida)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if strings.TrimSpace(MateriaRecibida.Titulo) == "" ||
-		MateriaRecibida.IDLista <= 0 {
-		http.Error(w, "Todos los campos son obligatorios y no pueden contener solo espacios", http.StatusBadRequest)
-		return
-	}
-
-	MateriaActualizada, err := q.UpdateMateria(r.Context(), MateriaRecibida)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(MateriaActualizada)
 }
 
 // DeleteMateria elimina una materia (y sus tareas/horas en cascada según schema.sql).

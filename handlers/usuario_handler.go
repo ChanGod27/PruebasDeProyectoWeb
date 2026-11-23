@@ -21,7 +21,6 @@ import (
 func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	var newUsuario db.CreateUserParams
 
-	// 1. Caso envío desde Formulario HTML o HTMX
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		renderError := func(msg string) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -64,32 +63,6 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
-
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	err := json.NewDecoder(r.Body).Decode(&newUsuario)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if strings.TrimSpace(newUsuario.Nombre) == "" ||
-		strings.TrimSpace(newUsuario.Apellido) == "" ||
-		strings.TrimSpace(newUsuario.Email) == "" ||
-		strings.TrimSpace(newUsuario.Contrasena) == "" {
-		http.Error(w, "Todos los campos son obligatorios y no pueden contener solo espacios", http.StatusBadRequest)
-		return
-	}
-
-	userCreated, err := q.CreateUser(r.Context(), newUsuario)
-	if err != nil {
-		log.Printf("ERROR BD al crear usuario: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(userCreated)
 }
 
 func GetUserByEmail(w http.ResponseWriter, r *http.Request, q *db.Queries) {
