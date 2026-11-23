@@ -1,13 +1,7 @@
 package views
 
 // =============================================================================
-// COMPONENTE: FORMULARIO DE CREACIÓN DE USUARIO CON HTMX (create_usuario.templ)
-// =============================================================================
-// - CreateUsuarioContent: fragmento renderizado dentro de #auth-content.
-// - CreateUsuarioPage: página completa envuelta en LayoutAuth.
-// Al enviarse por POST /usuarios con HTMX, si tiene éxito el backend puede
-// responder con LoginContent("", "", "Usuario creado. Inicia sesión") y el
-// header `HX-Push-Url: /login`.
+// FORMULARIO DE CREACIÓN DE USUARIO 
 // =============================================================================
 
 templ CreateUsuarioContent(errorMsg string) {

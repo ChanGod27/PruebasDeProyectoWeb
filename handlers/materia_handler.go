@@ -12,6 +12,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// ==========================================
+// OPERACIONES DE MATERIA
+// ==========================================
+
+// operacion principal de creacion de materia
 func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -43,6 +48,7 @@ func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
+// operacion de actualizacion de materia
 func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -92,6 +98,7 @@ func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
+// operacion de eliminacion de materia
 func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
@@ -129,6 +136,7 @@ func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
+// se obtiene todas las materias de un usuario y se les carga sus tareas
 func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32) ([]views.MateriaConTareas, error) {
 	materias, err := q.ListMateriasByUsuario(ctx, idUsuario)
 	if err != nil {
@@ -150,7 +158,7 @@ func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32
 	return resultado, nil
 }
 
-// materiaPerteneceAUsuario verifica que una materia (id_lista) exista y pertenezca al usuario activo.
+// se verifica que una materia exista y pertenezca al usuario
 func materiaPerteneceAUsuario(ctx context.Context, q *db.Queries, idLista int32, idUsuario int32) (bool, error) {
 	materias, err := q.ListMateriasByUsuario(ctx, idUsuario)
 	if err != nil {
@@ -164,8 +172,7 @@ func materiaPerteneceAUsuario(ctx context.Context, q *db.Queries, idLista int32,
 	return false, nil
 }
 
-// renderMateriasActualizadas recarga el tablero del usuario y responde con el fragmento
-// HTMX (MateriasContent) o la página completa (MateriasPage) según el header HX-Request.
+// se recarga el tablero del usuario con sus materias actualizadas
 func renderMateriasActualizadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client, idUsuario int32) {
 	materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
 	if err != nil {
@@ -198,8 +205,7 @@ func renderMateriasActualizadas(w http.ResponseWriter, r *http.Request, q *db.Qu
 	views.MateriasPage(usuario, materiasConTareas).Render(r.Context(), w)
 }
 
-// MateriasView renderiza el tablero de materias y tareas del usuario activo en Redis.
-// Soporta navegación interna con HTMX (MateriasContent) y carga completa / F5 (MateriasPage).
+// serenderiza el tablero de materias y tareas del usuario
 func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {

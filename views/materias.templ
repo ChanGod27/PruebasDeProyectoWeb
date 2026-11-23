@@ -7,14 +7,9 @@ import (
 )
 
 // =============================================================================
-// VISTA DE MATERIAS Y TAREAS CON HTMX (materias.templ)
+// VISTA DE MATERIAS Y TAREAS 
 // =============================================================================
-// - MateriasContent: fragmento renderizado dentro de #main-content (HTMX).
-// - MateriasPage: página completa envuelta en LayoutBase (carga inicial / F5).
-// Los formularios de Agregar Materia, Agregar Tarea y Completar Tarea usan
-// HTMX (hx-post) apuntando a #main-content para actualizar el tablero sin
-// recargar toda la página.
-// =============================================================================
+
 
 type MateriaConTareas struct {
 	Materia db.ListaTarea

@@ -1,16 +1,9 @@
 package views
 
 // =============================================================================
-// LAYOUTS BASE: ESTRUCTURA HTML GLOBAL CON HTMX (layout.templ)
+// LAYOUTS BASE: ESTRUCTURA HTML GLOBAL
 // =============================================================================
-// Opción A (HX-Redirect):
-// 1. LayoutAuth: Para vistas sin sesión activa (Login y Registro). Envuelve el
-//    contenido en #auth-content para navegar entre Login y Registro con HTMX.
-//    Al iniciar sesión exitosamente, el backend responde con HX-Redirect: /calendario.
-// 2. LayoutBase: Dashboard principal con barra de navegación superior. Los enlaces
-//    usan hx-get apuntando a #main-content con hx-push-url="true" para cambiar
-//    de vista sin recargar la página ni perder el header/sesión.
-// =============================================================================
+
 
 templ LayoutAuth(titulo string) {
 	<!DOCTYPE html>

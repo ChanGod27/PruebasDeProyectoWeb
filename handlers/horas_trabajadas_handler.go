@@ -13,8 +13,10 @@ import (
 )
 
 // ==========================================
-// 4. OPERACIONES DE HORAS (db.HorasTrabajada)
+// OPERACIONES DE HORAS TRABAJADAS
 // ==========================================
+
+// convierte una cadena con formato "YYYY-MM-DDTHH:MM"
 
 func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
 	valor = strings.TrimSpace(valor)
@@ -25,6 +27,7 @@ func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
 	return pgtype.Timestamp{Time: t.In(time.Local), Valid: true}, nil
 }
 
+// operacion princiapl de creacion de horas trabajadas
 func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -50,7 +53,7 @@ func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 		return
 	}
 
-	// Seguridad (ownership): verificar que la tarea pertenezca a una materia del usuario logueado.
+	// se verifica que la tarea pertenezca a una materia del usuario logueado.
 	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
@@ -88,8 +91,7 @@ func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 	renderCalendarioActualizado(w, r, q, rdb, idUsuario)
 }
 
-// DeleteHorasTrabajadas elimina un registro de horas trabajadas.
-// Valida sesión en Redis, verifica propiedad y devuelve el calendario actualizado.
+// elimina un registro de horas trabajadas.
 func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
@@ -106,7 +108,7 @@ func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 		return
 	}
 
-	// Seguridad (ownership): confirmar que el registro de horas pertenezca a una tarea del usuario.
+	// se confirma que el registro de horas pertenezca a una tarea del usuario.
 	materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al validar propiedad de horas #%d: %v", idHoras, err)

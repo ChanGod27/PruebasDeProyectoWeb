@@ -6,13 +6,9 @@ import (
 )
 
 // =============================================================================
-// VISTA DE CALENDARIO Y CRONÓMETRO CON HTMX (calendario.templ)
+// VISTA DE CALENDARIO Y CRONÓMETRO 
 // =============================================================================
-// - CalendarioContent: fragmento renderizado dentro de #main-content (HTMX).
-// - CalendarioPage: página completa envuelta en LayoutBase (carga inicial / F5).
-// El formulario del cronómetro envía por hx-post="/horas_trabajadas" y
-// actualiza #main-content con el calendario y eventos recién guardados.
-// =============================================================================
+
 
 type DiaCalendario struct {
 	Nombre     string

@@ -1,12 +1,8 @@
 package handlers
 
-// =============================================================================
-// AGREGADO PARA REDIS: HANDLERS Y HELPERS DE SESIÓN (redis_session_handler.go)
-// =============================================================================
-// Implementa la gestión de sesiones de usuario usando Redis como almacenamiento
-// centralizado y una cookie HttpOnly opaca en el navegador.
-// No modifica ningún handler existente para que pueda integrarse gradualmente.
-// =============================================================================
+// ==========================================
+// OPERACIONES DE REDIS
+// ==========================================
 
 import (
 	"context"
@@ -20,43 +16,33 @@ import (
 )
 
 const (
-	// NombreCookieSesion es el nombre de la cookie HttpOnly que guarda el token opaco en el navegador.
 	NombreCookieSesion = "go_tasks_session"
 
-	// DuracionSesion define cuánto tiempo permanece activa una sesión en Redis antes de expirar (24 horas).
 	DuracionSesion = 24 * time.Hour
 
-	// PrefijoClaveSesion es el prefijo usado en Redis para distinguir las sesiones de otros datos ("session:<token>").
 	PrefijoClaveSesion = "session:"
 )
 
-// errRedisNoDisponible se devuelve cuando el cliente *redis.Client es nil (ej. Redis apagado al iniciar).
 var errRedisNoDisponible = errors.New("cliente Redis no inicializado")
 
-// CrearSesionRedis genera un token aleatorio criptográficamente seguro, lo guarda
-// en Redis asociado al idUsuario con un TTL de 24 horas y envía la cookie HttpOnly al cliente.
+// operacion principal de registro de la sesion y creacion de cookie
 func CrearSesionRedis(ctx context.Context, w http.ResponseWriter, rdb *redis.Client, idUsuario int32) error {
-	// Validación defensiva para evitar panic si Redis no está conectado.
+	// Validación para evitar panic si Redis no está conectado.
 	if rdb == nil {
 		return errRedisNoDisponible
 	}
 
-	// Genera 32 bytes aleatorios (256 bits) y los codifica en hexadecimal (64 caracteres).
-	// Así nadie puede adivinar ni falsificar el identificador de sesión de otro usuario.
 	bytesToken := make([]byte, 32)
 	if _, err := rand.Read(bytesToken); err != nil {
 		return err
 	}
 	token := hex.EncodeToString(bytesToken)
 
-	// Guarda en Redis la relación "session:<token>" -> idUsuario con expiración automática (TTL).
-	// Cuando pasen 24 horas sin actividad, Redis borrará la clave automáticamente.
 	clave := PrefijoClaveSesion + token
 	if err := rdb.Set(ctx, clave, idUsuario, DuracionSesion).Err(); err != nil {
 		return err
 	}
 
-	// Envía únicamente el token aleatorio al navegador dentro de una cookie segura:
 	// - HttpOnly: impide que JavaScript (document.cookie) pueda leer la sesión.
 	// - SameSiteLaxMode: mitiga ataques CSRF manteniendo compatibilidad con enlaces y HTMX.
 	// - Path "/": hace que la cookie se envíe en todas las rutas del sitio.
@@ -72,10 +58,9 @@ func CrearSesionRedis(ctx context.Context, w http.ResponseWriter, rdb *redis.Cli
 	return nil
 }
 
-// ObtenerUsuarioIDRedis lee la cookie de sesión de la petición, consulta en Redis
-// a qué usuario pertenece ese token y renueva el tiempo de expiración (sliding expiration).
+// se obtiene el usario que tiene sesion iniciada
 func ObtenerUsuarioIDRedis(ctx context.Context, r *http.Request, rdb *redis.Client) (int32, error) {
-	// Validación defensiva para evitar panic si Redis no está disponible.
+	// Validación para evitar panic si Redis no está disponible.
 	if rdb == nil {
 		return 0, errRedisNoDisponible
 	}
@@ -90,7 +75,6 @@ func ObtenerUsuarioIDRedis(ctx context.Context, r *http.Request, rdb *redis.Clie
 	}
 
 	// Consulta el ID del usuario almacenado en Redis bajo "session:<token>".
-	// Si no existe o expiró, go-redis devuelve redis.Nil como error.
 	clave := PrefijoClaveSesion + cookie.Value
 	id, err := rdb.Get(ctx, clave).Int64()
 	if err != nil {
@@ -103,11 +87,9 @@ func ObtenerUsuarioIDRedis(ctx context.Context, r *http.Request, rdb *redis.Clie
 	return int32(id), nil
 }
 
-// CerrarSesionRedis elimina la clave de sesión en Redis (si existe la cookie y Redis está activo)
-// e invalida la cookie en el navegador del usuario asignándole MaxAge: -1.
+// operacion de logout y eliminacion de cookie
 func CerrarSesionRedis(ctx context.Context, w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
-	// Si el navegador envió la cookie y Redis está disponible, borramos la sesión en el servidor
-	// para que ese token no pueda volver a usarse aunque alguien lo haya copiado antes.
+
 	if cookie, err := r.Cookie(NombreCookieSesion); err == nil && cookie.Value != "" && rdb != nil {
 		_ = rdb.Del(ctx, PrefijoClaveSesion+cookie.Value).Err()
 	}
@@ -123,10 +105,7 @@ func CerrarSesionRedis(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	})
 }
 
-// RedirigirSinSesion es un helper para rutas protegidas:
-//   - Si la petición proviene de HTMX (HX-Request: true), responde con HX-Redirect: /login y 401
-//     para que HTMX redirija toda la página en lugar de inyectar el login dentro de un fragmento.
-//   - Si es una petición HTTP normal, realiza una redirección estándar 303 See Other a /login.
+// redirecciona a /login cuando  no hay sesion iniciada
 func RedirigirSinSesion(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Set("HX-Redirect", "/login")
@@ -136,9 +115,7 @@ func RedirigirSinSesion(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// LogoutRedisHandler atiende la ruta GET /logout:
-// cierra la sesión en Redis, borra la cookie y redirige al usuario a /login
-// soportando tanto navegación tradicional como peticiones HTMX.
+// cierra la sesión en Redis y redirige al usuario a /login
 func LogoutRedisHandler(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
 	CerrarSesionRedis(r.Context(), w, r, rdb)
 

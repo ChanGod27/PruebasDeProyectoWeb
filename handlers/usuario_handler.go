@@ -10,10 +10,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// CreateUsuario procesa la creación de usuario.
+// ==========================================
+// OPERACIONES DE USUARIO
+// ==========================================
+
+// operacion principal de creacion de usuario
 func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	var newUsuario db.CreateUserParams
 
+	// encapsulamineto del mensaje de error para las distintas verificaciones
 	renderError := func(msg string) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if r.Header.Get("HX-Request") == "true" {
@@ -55,7 +60,7 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
-// CreateUsuarioView renderiza el formulario para añadir un nuevo usuario (soporta carga completa y HTMX)
+// se renderiza el formulario para añadir un nuevo usuario
 func CreateUsuarioView(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if r.Header.Get("HX-Request") == "true" {
@@ -65,10 +70,10 @@ func CreateUsuarioView(w http.ResponseWriter, r *http.Request) {
 	views.CreateUsuarioPage("").Render(r.Context(), w)
 }
 
-// LoginView renderiza la pantalla de inicio de sesión (soporta carga completa y HTMX).
+// se renderiza la pantalla de inicio de sesión
 // Si el usuario ya tiene una sesión activa en Redis, lo redirige directamente a /calendario.
 func LoginView(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
-	// 1. Verificar si ya existe una sesión activa en Redis para evitar mostrar el login innecesariamente.
+	// Verificar si ya existe una sesión activa en Redis para evitar mostrar el login innecesariamente.
 	if _, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb); err == nil {
 		if r.Header.Get("HX-Request") == "true" {
 			w.Header().Set("HX-Redirect", "/calendario")
@@ -79,7 +84,6 @@ func LoginView(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
 		return
 	}
 
-	// 2. Renderizar el fragmento HTMX o la página completa según cómo llegó la petición.
 	email := r.URL.Query().Get("email")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if r.Header.Get("HX-Request") == "true" {
@@ -89,14 +93,13 @@ func LoginView(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
 	views.LoginPage(email, "", "").Render(r.Context(), w)
 }
 
-// LoginSubmit valida las credenciales contra PostgreSQL, crea la sesión en Redis
+// se valida las credenciales contra PostgreSQL, crea la sesión en Redis
 // (guardando la cookie HttpOnly go_tasks_session) y redirige a /calendario.
 func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	email := strings.TrimSpace(r.FormValue("email"))
 	contrasena := strings.TrimSpace(r.FormValue("contrasena"))
 
-	// Helper local para mostrar el error dentro de #auth-content (HTMX) o página completa.
-	// En HTMX respondemos con 200 OK para que siempre reemplace el contenido con la alerta de error.
+	// encapsulamineto del mensaje de error para las distintas verificaciones
 	renderLoginError := func(statusCode int, msg string) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		if r.Header.Get("HX-Request") == "true" {
@@ -120,7 +123,6 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		return
 	}
 
-	// Si el login fue por HTMX, usamos HX-Redirect para pasar de LayoutAuth a LayoutBase (/calendario).
 	if r.Header.Get("HX-Request") == "true" {
 		w.Header().Set("HX-Redirect", "/calendario")
 		w.WriteHeader(http.StatusOK)
@@ -130,17 +132,15 @@ func LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 	http.Redirect(w, r, "/calendario", http.StatusSeeOther)
 }
 
-// UsuarioView renderiza el perfil con los datos del usuario autenticado en Redis.
-// Soporta carga completa (LayoutBase) y navegación interna por HTMX (UsuarioContent).
+// se renderiza el perfil con los datos del usuario
 func UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	// 1. Verificar sesión activa en Redis; si no hay sesión o expiró, redirigir a /login.
+	// Verificar sesión activa en Redis; si no hay sesión o expiró, redirigir a /login.
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
 		RedirigirSinSesion(w, r)
 		return
 	}
 
-	// 2. Consultar los datos actuales del usuario en PostgreSQL (sin traer la contraseña).
 	uRow, err := q.GetUserByID(r.Context(), idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al obtener usuario activo #%d: %v", idUsuario, err)
@@ -149,7 +149,6 @@ func UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		return
 	}
 
-	// 3. Mapear GetUserByIDRow a db.Usuario (la vista solo muestra ID, nombre, apellido y email).
 	usuario := db.Usuario{
 		IDUsuario: uRow.IDUsuario,
 		Nombre:    uRow.Nombre,
@@ -157,7 +156,6 @@ func UsuarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		Email:     uRow.Email,
 	}
 
-	// 4. Devolver solo el fragmento #main-content si viene de HTMX, o la página completa si es carga directa / F5.
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if r.Header.Get("HX-Request") == "true" {
 		views.UsuarioContent(usuario).Render(r.Context(), w)

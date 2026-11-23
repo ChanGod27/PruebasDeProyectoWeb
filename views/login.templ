@@ -1,13 +1,9 @@
 package views
 
 // =============================================================================
-// VISTA DE LOGIN CON HTMX (login.templ)
+// VISTA DE LOGIN 
 // =============================================================================
-// - LoginContent: fragmento renderizado dentro de #auth-content (para HTMX).
-// - LoginPage: página completa envuelta en LayoutAuth (para carga inicial / F5).
-// Al enviar POST /login con credenciales válidas, el backend debe responder con
-// el header HTTP `HX-Redirect: /calendario` para pasar al dashboard principal.
-// =============================================================================
+
 
 templ LoginContent(emailPrellenado string, errorMsg string, successMsg string) {
 	<main class="login-wrapper">

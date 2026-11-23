@@ -13,11 +13,10 @@ import (
 )
 
 // ==========================================
-// CONTROLADORES DE CALENDARIO (HTMX + REDIS)
+// OPERACIONES DE CALENDARIO
 // ==========================================
 
-// ajustarHoraGrilla acota la hora de un evento al rango visible de la grilla (08:00 a 21:00)
-// para que tareas u horas fuera de horario aparezcan igualmente en el calendario semanal.
+// se acota la hora de un evento al rango visible de la grilla (08:00 a 21:00)
 func ajustarHoraGrilla(h int) int {
 	if h < 8 {
 		return 8
@@ -28,14 +27,15 @@ func ajustarHoraGrilla(h int) int {
 	return h
 }
 
-// normalizarWallTime reconstruye la fecha/hora en time.Local manteniendo el año, mes, día,
-// hora y minuto exactos almacenados en PostgreSQL (TIMESTAMP sin zona horaria).
+/*
+se reconstruye la fecha/hora en time.Local manteniendo el año, mes, día,
+hora y minuto exactos almacenados en PostgreSQL (TIMESTAMP sin zona horaria).
+*/
 func normalizarWallTime(t time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, time.Local)
 }
 
-// cargarDatosCalendario reúne las tareas y horas trabajadas de la semana actual (Lunes a Sábado)
-// pertenecientes exclusivamente al usuario autenticado.
+// se reúne las tareas y horas trabajadas de la semana actual (Lunes a Sábado)
 func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) ([]db.Tarea, []views.DiaCalendario, []views.EventoCalendario, error) {
 	materiasConTareas, err := cargarMateriasConTareas(ctx, q, idUsuario)
 	if err != nil {
@@ -43,9 +43,9 @@ func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) 
 	}
 
 	ahora := time.Now().In(time.Local)
-	diasDesdeLunes := (int(ahora.Weekday()) + 6) % 7 // Lunes=0 .. Sábado=5, Domingo=6
+	diasDesdeLunes := (int(ahora.Weekday()) + 6) % 7
 	inicioSemana := time.Date(ahora.Year(), ahora.Month(), ahora.Day()-diasDesdeLunes, 0, 0, 0, 0, time.Local)
-	finSemana := inicioSemana.AddDate(0, 0, 6) // Lunes 00:00 hasta Domingo 00:00 (cubre Lun-Sáb)
+	finSemana := inicioSemana.AddDate(0, 0, 6)
 
 	var todasTareas []db.Tarea
 	var eventos []views.EventoCalendario
@@ -162,8 +162,7 @@ func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) 
 	return todasTareas, dias, eventos, nil
 }
 
-// renderCalendarioActualizado construye los datos de la semana y responde con
-// CalendarioContent (HTMX) o CalendarioPage (carga completa / F5).
+// se construye los datos de la semana
 func renderCalendarioActualizado(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client, idUsuario int32) {
 	tareas, dias, eventos, err := cargarDatosCalendario(r.Context(), q, idUsuario)
 	if err != nil {
@@ -196,7 +195,7 @@ func renderCalendarioActualizado(w http.ResponseWriter, r *http.Request, q *db.Q
 	views.CalendarioPage(usuario, tareas, dias, eventos).Render(r.Context(), w)
 }
 
-// CalendarioView renderiza el dashboard de cronómetro y calendario semanal del usuario activo en Redis.
+// se renderiza el cronómetro y calendario semanal
 func CalendarioView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {

@@ -13,9 +13,10 @@ import (
 )
 
 // ==========================================
-// OPERACIONES DE TAREA (db.Tarea)
+// OPERACIONES DE TAREA
 // ==========================================
 
+// convierte una cadena con formato "YYYY-MM-DDTHH:MM"
 func parseFechaDatetimeLocal(valor string) (pgtype.Timestamp, error) {
 	valor = strings.TrimSpace(valor)
 	if valor == "" {
@@ -28,8 +29,7 @@ func parseFechaDatetimeLocal(valor string) (pgtype.Timestamp, error) {
 	return pgtype.Timestamp{Time: t, Valid: true}, nil
 }
 
-// CreateTarea procesa la creación de una tarea desde formulario HTML/HTMX
-// (#task-modal en materias.templ), validando sesión y propiedad en Redis.
+// operacion princiapl de creacion de tarea
 func CreateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -55,7 +55,7 @@ func CreateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		return
 	}
 
-	// Seguridad (ownership): verificar que la materia pertenezca al usuario logueado.
+	// se verifica que la materia pertenezca al usuario logueado.
 	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idLista, idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al validar materia #%d: %v", idLista, err)
@@ -97,6 +97,7 @@ func CreateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
+// actualiacion de la tarea
 func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -172,8 +173,7 @@ func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
-// DeleteTarea elimina una tarea (y sus horas trabajadas asociadas en cascada).
-// Valida sesión en Redis, verifica propiedad y devuelve el tablero actualizado.
+// se elimina una tarea (y sus horas trabajadas asociadas).
 func DeleteTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
@@ -217,8 +217,7 @@ func DeleteTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }
 
-// CompletarTarea atiende POST /tareas/{id}/completar desde el checklist de materias.templ.
-// Verifica sesión en Redis y propiedad de la materia antes de marcar completada = true.
+// se marca como completada una tarea desde la vista de materias
 func CompletarTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
 	if err != nil {
@@ -239,7 +238,7 @@ func CompletarTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *
 		return
 	}
 
-	// Seguridad (ownership): verificar que la materia de esta tarea pertenezca al usuario logueado.
+	// se verifica que la materia de esta tarea pertenezca al usuario logueado.
 	pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)

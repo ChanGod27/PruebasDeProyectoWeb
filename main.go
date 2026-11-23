@@ -8,10 +8,6 @@ import (
 	"net/http"
 )
 
-// ==========================================
-// FUNCIÓN MAIN
-// ==========================================
-
 func main() {
 	// Conexion con la base de datos
 	ctx := context.Background()
