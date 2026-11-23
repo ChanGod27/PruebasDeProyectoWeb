@@ -33,17 +33,17 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
 
 > **Por qué primero:** mientras `views/*_templ.go` no exista, Go no puede compilar `handlers/`, y mientras no corras `sqlc generate`, `db/queries.sql.go` sigue teniendo la versión vieja antes de tu borrado de `ListUsers`.
 
-- [ ] **1.1. Evaluar y agregar nuevas queries filtradas por usuario en `db/queries.sql`**
+- [x] **1.1. Evaluar y agregar nuevas queries filtradas por usuario en `db/queries.sql`**
   - Hoy `ListTareasByRangoFechas` y `ListHorasByRangoFechas` consultan todas las filas sin filtrar por `id_usuario` (si hay más de un usuario en la base, un usuario vería tareas u horas de otro en el calendario).
   - Agregar en `db/queries.sql` (haciendo `JOIN lista_tarea` para filtrar por `id_usuario`):
     - `ListTareasByUsuarioYRangoFechas :many` (para pintar las tareas de la semana del usuario logueado en `/calendario`).
     - `ListHorasByUsuarioYRangoFechas :many` (haciendo `JOIN tarea` + `JOIN lista_tarea` para las horas trabajadas de la semana del usuario).
     - `ListTareasByUsuario :many` (para llenar el `<select>` de tareas pendientes del cronómetro sin hacer N+1 consultas).
     - `MarcarTareaCompletada :one` (o reutilizar `UpdateTarea`, pasando `completada = TRUE` y verificando propiedad del usuario).
-- [ ] **1.2. Regenerar código SQL con `sqlc`**
+- [x] **1.2. Regenerar código SQL con `sqlc`**
   - Ejecutar `sqlc generate` (o `make generate`).
   - Verificar que `db/queries.sql.go` ya no contenga `ListUsers` y sí incluya las queries nuevas.
-- [ ] **1.3. Generar los archivos Go de las vistas con `templ`**
+- [x] **1.3. Generar los archivos Go de las vistas con `templ`**
   - Ejecutar `templ generate`.
   - Verificar que se hayan creado los `*_templ.go` dentro de `views/` y que `go build ./...` (o `go vet ./views/...`) reconozca todos los nuevos componentes (`LoginPage`, `LoginContent`, `MateriasPage`, `CalendarioPage`, `UsuarioPage`, etc.).
 
@@ -53,18 +53,18 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
 
 > **Por qué segundo:** es la puerta de entrada; si el login no crea la cookie en Redis ni redirige a `/calendario`, ninguna vista privada puede probarse.
 
-- [ ] **2.1. Actualizar `LoginView` (`GET /` y `GET /login`)**
+- [x] **2.1. Actualizar `LoginView` (`GET /` y `GET /login`)**
   - Cambiar su firma para recibir `rdb *redis.Client`: `LoginView(w http.ResponseWriter, r *http.Request, rdb *redis.Client)`.
   - Al inicio, llamar a `ObtenerUsuarioIDRedis(r.Context(), r, rdb)`: si no hay error (ya tiene sesión activa), redirigir directo a `/calendario` (`HX-Redirect` si es HTMX, o `http.Redirect` 303 si es navegación normal).
   - Leer `email := r.URL.Query().Get("email")`.
   - Chequear `r.Header.Get("HX-Request") == "true"`:
     - Si es `true` → renderizar `views.LoginContent(email, "", "")`.
     - Si es `false` → renderizar `views.LoginPage(email, "", "")`.
-- [ ] **2.2. Actualizar `CreateUsuarioView` (`GET /usuarios/nuevo`)**
+- [x] **2.2. Actualizar `CreateUsuarioView` (`GET /usuarios/nuevo`)**
   - Chequear `r.Header.Get("HX-Request") == "true"`:
     - Si es `true` → renderizar `views.CreateUsuarioContent("")`.
     - Si es `false` → renderizar `views.CreateUsuarioPage("")`.
-- [ ] **2.3. Actualizar `CreateUsuario` (`POST /usuarios`)**
+- [x] **2.3. Actualizar `CreateUsuario` (`POST /usuarios`)**
   - En la rama de formulario (`application/x-www-form-urlencoded`):
     - Si faltan campos o hay error de BD (ej. email duplicado):
       - Si `r.Header.Get("HX-Request") == "true"` → renderizar `views.CreateUsuarioContent(msgError)` (reemplaza `#auth-content`).
@@ -73,7 +73,7 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
       - Si `r.Header.Get("HX-Request") == "true"` → agregar header `w.Header().Set("HX-Push-Url", "/login")` y renderizar `views.LoginContent("", "", "Usuario creado correctamente. Inicia sesión.")` para volver al login sin iniciar sesión automáticamente.
       - Si no → `http.Redirect(w, r, "/login", http.StatusSeeOther)`.
   - Mantener intacta la rama JSON para que sigan funcionando las pruebas API / `tests/request.hurl`.
-- [ ] **2.4. Actualizar `LoginSubmit` (`POST /login`)**
+- [x] **2.4. Actualizar `LoginSubmit` (`POST /login`)**
   - Cambiar su firma para recibir `rdb *redis.Client`: `LoginSubmit(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)`.
   - Si el email no existe o `u.Contrasena != contrasena`:
     - Si `r.Header.Get("HX-Request") == "true"` → renderizar `views.LoginContent(email, "Contraseña incorrecta o usuario no encontrado", "")`.

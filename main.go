@@ -57,12 +57,15 @@ func main() {
 		handlers.CreateUsuarioView(w, r)
 	})
 
-	// Inicio de sesión para comprobar contraseña (usuario.templ)
+	// Inicio de sesión (login.templ) — página principal y ruta /login
+	http.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		handlers.LoginView(w, r, rdb)
+	})
 	http.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
-		handlers.LoginView(w, r)
+		handlers.LoginView(w, r, rdb)
 	})
 	http.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
-		handlers.LoginSubmit(w, r, queries)
+		handlers.LoginSubmit(w, r, queries, rdb)
 	})
 
 	// Handlers que conectan las operaciones crud
