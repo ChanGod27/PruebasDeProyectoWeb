@@ -110,6 +110,7 @@ func cargarDatosCalendario(ctx context.Context, q *db.Queries, idUsuario int32) 
 
 				eventos = append(eventos, views.EventoCalendario{
 					IDTarea:      t.IDTarea,
+					IDHoras:      h.IDHoras,
 					Titulo:       "⏱ " + t.Titulo,
 					DiaIndex:     diaIdx,
 					Hora:         ajustarHoraGrilla(ini.Hour()),

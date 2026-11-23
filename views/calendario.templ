@@ -24,6 +24,7 @@ type DiaCalendario struct {
 
 type EventoCalendario struct {
 	IDTarea      int32
+	IDHoras      int32 // > 0 cuando corresponde a un registro de horas trabajadas
 	Titulo       string
 	DiaIndex     int // 0 = Lunes .. 5 = Sábado
 	Hora         int // 8 .. 21
@@ -164,9 +165,24 @@ templ CalendarioContent(tareas []db.Tarea, dias []DiaCalendario, eventos []Event
 								for _, ev := range eventos {
 									if ev.DiaIndex == diaIdx && ev.Hora == hora {
 										<div class="cal-event-pill" title={ ev.Titulo }>
-											<div class="event-title-line">
-												<span class="event-dot-white"></span>
-												<span>{ ev.Titulo }</span>
+											<div class="event-title-line" style="justify-content: space-between;">
+												<span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+													<span class="event-dot-white"></span>
+													<span>{ ev.Titulo }</span>
+												</span>
+												if ev.IDHoras > 0 {
+													<button
+														type="button"
+														hx-delete={ fmt.Sprintf("/horas/%d", ev.IDHoras) }
+														hx-target="#main-content"
+														hx-swap="innerHTML"
+														hx-confirm="¿Eliminar este registro de horas trabajadas?"
+														title="Eliminar horas trabajadas"
+														style="background: transparent; border: none; color: #fecaca; cursor: pointer; font-size: 0.7rem; padding: 0 0.15rem; line-height: 1;"
+													>
+														<i class="fa-solid fa-trash-can"></i>
+													</button>
+												}
 											</div>
 											if ev.RangoHorario != "" {
 												<div class="event-time-range">{ ev.RangoHorario }</div>

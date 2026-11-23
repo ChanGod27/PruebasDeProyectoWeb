@@ -48,6 +48,13 @@ func formatFecha(ts pgtype.Timestamp) string {
 	return ts.Time.Format("02/01 15:04")
 }
 
+func formatFechaInput(ts pgtype.Timestamp) string {
+	if !ts.Valid {
+		return ""
+	}
+	return ts.Time.Format("2006-01-02T15:04")
+}
+
 templ MateriasContent(materias []MateriaConTareas) {
 	<!-- Encabezado de la Sección -->
 	<section class="page-header">
@@ -103,9 +110,29 @@ templ MateriasContent(materias []MateriaConTareas) {
 									<i class="fa-solid fa-book col-icon-amber"></i>
 									<span>{ m.Materia.Titulo }</span>
 								</div>
-								<span class="badge badge-amber">
-									{ fmt.Sprint(len(tareasPendientes(m.Tareas))) } pendientes
-								</span>
+								<div style="display: flex; align-items: center; gap: 0.4rem;">
+									<span class="badge badge-amber">
+										{ fmt.Sprint(len(tareasPendientes(m.Tareas))) } pendientes
+									</span>
+									<a
+										href={ templ.URL(fmt.Sprintf("#edit-materia-%d", m.Materia.IDLista)) }
+										title="Editar materia"
+										style="color: var(--color-text-muted); font-size: 0.8rem; padding: 0.15rem 0.25rem; text-decoration: none;"
+									>
+										<i class="fa-solid fa-pen"></i>
+									</a>
+									<button
+										type="button"
+										hx-delete={ fmt.Sprintf("/materias/%d", m.Materia.IDLista) }
+										hx-target="#main-content"
+										hx-swap="innerHTML"
+										hx-confirm="¿Eliminar esta materia junto con todas sus tareas?"
+										title="Eliminar materia"
+										style="background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 0.8rem; padding: 0.15rem 0.25rem;"
+									>
+										<i class="fa-solid fa-trash-can"></i>
+									</button>
+								</div>
 							</header>
 
 							<!-- Lista de Tareas Pendientes -->
@@ -124,11 +151,31 @@ templ MateriasContent(materias []MateriaConTareas) {
 													<span class="task-red-ring"></span>
 													<span class="task-title">{ t.Titulo }</span>
 												</div>
-												if t.FechaFinalizacion.Valid {
-													<span class="badge badge-blue">
-														<i class="fa-regular fa-clock"></i> { formatFecha(t.FechaFinalizacion) }
-													</span>
-												}
+												<div style="display: flex; align-items: center; gap: 0.4rem;">
+													if t.FechaFinalizacion.Valid {
+														<span class="badge badge-blue">
+															<i class="fa-regular fa-clock"></i> { formatFecha(t.FechaFinalizacion) }
+														</span>
+													}
+													<a
+														href={ templ.URL(fmt.Sprintf("#edit-task-%d", t.IDTarea)) }
+														title="Editar tarea"
+														style="color: var(--color-text-muted); font-size: 0.78rem; padding: 0.1rem 0.2rem; text-decoration: none;"
+													>
+														<i class="fa-solid fa-pen"></i>
+													</a>
+													<button
+														type="button"
+														hx-delete={ fmt.Sprintf("/tareas/%d", t.IDTarea) }
+														hx-target="#main-content"
+														hx-swap="innerHTML"
+														hx-confirm="¿Eliminar esta tarea?"
+														title="Eliminar tarea"
+														style="background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 0.78rem; padding: 0.1rem 0.2rem;"
+													>
+														<i class="fa-solid fa-trash-can"></i>
+													</button>
+												</div>
 											</div>
 
 											if t.Descripcion.Valid && t.Descripcion.String != "" {
@@ -178,9 +225,31 @@ templ MateriasContent(materias []MateriaConTareas) {
 									<span style="color: var(--color-text-dim);">No hay tareas completadas aún.</span>
 								} else {
 									for _, tc := range tareasCompletadas(m.Tareas) {
-										<div class="completed-item">
-											<i class="fa-solid fa-check" style="color: var(--color-green); margin-right: 0.35rem;"></i>
-											<span>{ tc.Titulo }</span>
+										<div class="completed-item" style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
+											<span>
+												<i class="fa-solid fa-check" style="color: var(--color-green); margin-right: 0.35rem;"></i>
+												<span>{ tc.Titulo }</span>
+											</span>
+											<span style="display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none;">
+												<a
+													href={ templ.URL(fmt.Sprintf("#edit-task-%d", tc.IDTarea)) }
+													title="Editar tarea"
+													style="color: var(--color-text-muted); font-size: 0.72rem; text-decoration: none;"
+												>
+													<i class="fa-solid fa-pen"></i>
+												</a>
+												<button
+													type="button"
+													hx-delete={ fmt.Sprintf("/tareas/%d", tc.IDTarea) }
+													hx-target="#main-content"
+													hx-swap="innerHTML"
+													hx-confirm="¿Eliminar esta tarea completada?"
+													title="Eliminar tarea"
+													style="background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 0.72rem; padding: 0;"
+												>
+													<i class="fa-solid fa-trash-can"></i>
+												</button>
+											</span>
 										</div>
 									}
 								}
@@ -312,6 +381,131 @@ templ MateriasContent(materias []MateriaConTareas) {
 			</form>
 		</div>
 	</div>
+
+	<!-- MODALES: EDITAR MATERIA (#edit-materia-{id}) Y EDITAR TAREA (#edit-task-{id}) -->
+	for _, m := range materias {
+		<div id={ fmt.Sprintf("edit-materia-%d", m.Materia.IDLista) } class="modal">
+			<div class="modal-content">
+				<a href="#" class="modal-close-btn" title="Cerrar">&times;</a>
+				<header class="modal-header">
+					<i class="fa-solid fa-pen-to-square"></i>
+					<span>Editar Materia</span>
+				</header>
+				<form
+					hx-put={ fmt.Sprintf("/materias/%d", m.Materia.IDLista) }
+					hx-target="#main-content"
+					hx-swap="innerHTML"
+					hx-on::after-request="if(event.detail.successful) history.replaceState(null, '', '/materias');"
+					class="modal-form"
+				>
+					<div class="form-group">
+						<label for={ fmt.Sprintf("edit-materia-titulo-%d", m.Materia.IDLista) } class="form-label">
+							Nombre de la Materia <span class="req-star">*</span>
+						</label>
+						<input
+							type="text"
+							id={ fmt.Sprintf("edit-materia-titulo-%d", m.Materia.IDLista) }
+							name="titulo"
+							value={ m.Materia.Titulo }
+							required
+							class="form-control"
+						/>
+					</div>
+					<div class="modal-footer">
+						<a href="#" class="btn btn-outline">Cancelar</a>
+						<button type="submit" class="btn btn-primary">
+							<i class="fa-solid fa-floppy-disk"></i>
+							<span>Guardar Cambios</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		for _, t := range m.Tareas {
+			<div id={ fmt.Sprintf("edit-task-%d", t.IDTarea) } class="modal">
+				<div class="modal-content">
+					<a href="#" class="modal-close-btn" title="Cerrar">&times;</a>
+					<header class="modal-header">
+						<i class="fa-solid fa-pen-to-square"></i>
+						<span>Editar Tarea</span>
+					</header>
+					<form
+						hx-put={ fmt.Sprintf("/tareas/%d", t.IDTarea) }
+						hx-target="#main-content"
+						hx-swap="innerHTML"
+						hx-on::after-request="if(event.detail.successful) history.replaceState(null, '', '/materias');"
+						class="modal-form"
+					>
+						<div class="form-group">
+							<label for={ fmt.Sprintf("edit-tarea-titulo-%d", t.IDTarea) } class="form-label">
+								Título de la Tarea <span class="req-star">*</span>
+							</label>
+							<input
+								type="text"
+								id={ fmt.Sprintf("edit-tarea-titulo-%d", t.IDTarea) }
+								name="titulo"
+								value={ t.Titulo }
+								required
+								class="form-control"
+							/>
+						</div>
+
+						<div class="form-group">
+							<label for={ fmt.Sprintf("edit-tarea-desc-%d", t.IDTarea) } class="form-label">Descripción</label>
+							<textarea
+								id={ fmt.Sprintf("edit-tarea-desc-%d", t.IDTarea) }
+								name="descripcion"
+								rows="2"
+								class="form-control"
+							>{ t.Descripcion.String }</textarea>
+						</div>
+
+						<div class="form-grid-4" style="grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+							<div class="form-group">
+								<label for={ fmt.Sprintf("edit-tarea-inicio-%d", t.IDTarea) } class="form-label">Fecha Inicio</label>
+								<input
+									type="datetime-local"
+									id={ fmt.Sprintf("edit-tarea-inicio-%d", t.IDTarea) }
+									name="fecha_inicio"
+									value={ formatFechaInput(t.FechaInicio) }
+									class="form-control"
+								/>
+							</div>
+							<div class="form-group">
+								<label for={ fmt.Sprintf("edit-tarea-fin-%d", t.IDTarea) } class="form-label">Fecha Entrega</label>
+								<input
+									type="datetime-local"
+									id={ fmt.Sprintf("edit-tarea-fin-%d", t.IDTarea) }
+									name="fecha_finalizacion"
+									value={ formatFechaInput(t.FechaFinalizacion) }
+									class="form-control"
+								/>
+							</div>
+						</div>
+
+						<label class="checklist-label" style="margin-top: 0.25rem;">
+							<input
+								type="checkbox"
+								name="completada"
+								checked?={ t.Completada }
+								class="checklist-input"
+							/>
+							<span>Tarea completada</span>
+						</label>
+
+						<div class="modal-footer">
+							<a href="#" class="btn btn-outline">Cancelar</a>
+							<button type="submit" class="btn btn-primary">
+								<i class="fa-solid fa-floppy-disk"></i>
+								<span>Guardar Cambios</span>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		}
+	}
 }
 
 templ MateriasPage(usuario db.Usuario, materias []MateriaConTareas) {

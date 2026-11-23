@@ -203,7 +203,87 @@ func GetListTareasByRangoFechas(w http.ResponseWriter, r *http.Request, q *db.Qu
 	json.NewEncoder(w).Encode(listaTareas)
 }
 
-func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// PutUpdateTarea actualiza los datos de una tarea.
+// Soporta formulario HTMX (con sesión Redis y validación de propiedad) y JSON (API REST).
+func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
+	// 1. Caso envío desde Formulario HTML o HTMX (#edit-task-{id} en materias.templ)
+	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		id64, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+		if err != nil || id64 <= 0 {
+			http.Error(w, "ID de tarea inválido", http.StatusBadRequest)
+			return
+		}
+		idTarea := int32(id64)
+
+		tarea, err := q.GetTareaByID(r.Context(), idTarea)
+		if err != nil {
+			http.Error(w, "Tarea no encontrada", http.StatusNotFound)
+			return
+		}
+
+		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al validar permisos de la tarea", http.StatusInternalServerError)
+			return
+		}
+		if !pertenece {
+			http.Error(w, "No tienes permiso para editar esta tarea", http.StatusForbidden)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error al procesar el formulario de edición", http.StatusBadRequest)
+			return
+		}
+
+		titulo := strings.TrimSpace(r.FormValue("titulo"))
+		if titulo == "" {
+			http.Error(w, "El título de la tarea es obligatorio", http.StatusBadRequest)
+			return
+		}
+
+		fechaInicio, err := parseFechaDatetimeLocal(r.FormValue("fecha_inicio"))
+		if err != nil {
+			http.Error(w, "Formato de fecha de inicio inválido", http.StatusBadRequest)
+			return
+		}
+
+		fechaFin, err := parseFechaDatetimeLocal(r.FormValue("fecha_finalizacion"))
+		if err != nil {
+			http.Error(w, "Formato de fecha de entrega inválido", http.StatusBadRequest)
+			return
+		}
+
+		descripcion := strings.TrimSpace(r.FormValue("descripcion"))
+		completadaVal := strings.TrimSpace(r.FormValue("completada"))
+		completada := completadaVal == "on" || completadaVal == "true"
+
+		_, err = q.UpdateTarea(r.Context(), db.UpdateTareaParams{
+			IDTarea:           idTarea,
+			Titulo:            titulo,
+			FechaInicio:       fechaInicio,
+			FechaFinalizacion: fechaFin,
+			Descripcion:       pgtype.Text{String: descripcion, Valid: descripcion != ""},
+			Completada:        completada,
+		})
+		if err != nil {
+			log.Printf("ERROR BD al actualizar tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al actualizar la tarea", http.StatusInternalServerError)
+			return
+		}
+
+		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+		return
+	}
+
+	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
 	var TareaRecibida db.UpdateTareaParams
 
 	err := json.NewDecoder(r.Body).Decode(&TareaRecibida)
@@ -229,16 +309,52 @@ func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	json.NewEncoder(w).Encode(TareaActualizada)
 }
 
-func DeleteTarea(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// DeleteTarea elimina una tarea (y sus horas trabajadas asociadas en cascada).
+// Si proviene de HTMX, valida sesión en Redis, verifica propiedad y devuelve el tablero actualizado.
+func DeleteTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
 	parsed, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
+	if err != nil || parsed <= 0 {
 		http.Error(w, "El ID debe ser un número entero de 32 bits válido", http.StatusBadRequest)
 		return
 	}
 
 	idTarea := int32(parsed)
+
+	if r.Header.Get("HX-Request") == "true" {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		tarea, err := q.GetTareaByID(r.Context(), idTarea)
+		if err != nil {
+			http.Error(w, "Tarea no encontrada", http.StatusNotFound)
+			return
+		}
+
+		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, tarea.IDLista, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar propiedad de tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al validar permisos de la tarea", http.StatusInternalServerError)
+			return
+		}
+		if !pertenece {
+			http.Error(w, "No tienes permiso para eliminar esta tarea", http.StatusForbidden)
+			return
+		}
+
+		if err := q.DeleteTarea(r.Context(), idTarea); err != nil {
+			log.Printf("ERROR BD al eliminar tarea #%d: %v", idTarea, err)
+			http.Error(w, "Error al eliminar la tarea", http.StatusInternalServerError)
+			return
+		}
+
+		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+		return
+	}
 
 	err = q.DeleteTarea(r.Context(), idTarea)
 	if err != nil {

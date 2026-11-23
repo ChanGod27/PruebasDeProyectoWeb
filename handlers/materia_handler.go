@@ -100,7 +100,61 @@ func GetListMateriasByUsuario(w http.ResponseWriter, r *http.Request, q *db.Quer
 	json.NewEncoder(w).Encode(listaMateria)
 }
 
-func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// PutUpdateMateria actualiza el título de una materia.
+// Soporta formulario HTMX (con sesión Redis y validación de propiedad) y JSON (API REST).
+func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
+	// 1. Caso envío desde Formulario HTML o HTMX (#edit-materia-{id} en materias.templ)
+	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		parsed, err := strconv.ParseInt(r.PathValue("id"), 10, 32)
+		if err != nil || parsed <= 0 {
+			http.Error(w, "El ID de materia debe ser válido", http.StatusBadRequest)
+			return
+		}
+		idMateria := int32(parsed)
+
+		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
+			http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
+			return
+		}
+		if !pertenece {
+			http.Error(w, "No tienes permiso para editar esta materia", http.StatusForbidden)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error al procesar el formulario de edición", http.StatusBadRequest)
+			return
+		}
+
+		titulo := strings.TrimSpace(r.FormValue("titulo"))
+		if titulo == "" {
+			http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
+			return
+		}
+
+		_, err = q.UpdateMateria(r.Context(), db.UpdateMateriaParams{
+			IDLista: idMateria,
+			Titulo:  titulo,
+		})
+		if err != nil {
+			log.Printf("ERROR BD al actualizar materia #%d: %v", idMateria, err)
+			http.Error(w, "Error al actualizar la materia", http.StatusInternalServerError)
+			return
+		}
+
+		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+		return
+	}
+
+	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
 	var MateriaRecibida db.UpdateMateriaParams
 
 	err := json.NewDecoder(r.Body).Decode(&MateriaRecibida)
@@ -126,16 +180,46 @@ func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	json.NewEncoder(w).Encode(MateriaActualizada)
 }
 
-func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// DeleteMateria elimina una materia (y sus tareas/horas en cascada según schema.sql).
+// Si proviene de HTMX, valida sesión en Redis, verifica propiedad y devuelve el tablero actualizado.
+func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
 	parsed, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
+	if err != nil || parsed <= 0 {
 		http.Error(w, "El ID debe ser un número entero de 32 bits válido", http.StatusBadRequest)
 		return
 	}
 
 	idMateria := int32(parsed)
+
+	if r.Header.Get("HX-Request") == "true" {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		pertenece, err := materiaPerteneceAUsuario(r.Context(), q, idMateria, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar materia #%d: %v", idMateria, err)
+			http.Error(w, "Error al validar permisos de la materia", http.StatusInternalServerError)
+			return
+		}
+		if !pertenece {
+			http.Error(w, "No tienes permiso para eliminar esta materia", http.StatusForbidden)
+			return
+		}
+
+		if err := q.DeleteMateria(r.Context(), idMateria); err != nil {
+			log.Printf("ERROR BD al eliminar materia #%d: %v", idMateria, err)
+			http.Error(w, "Error al eliminar la materia", http.StatusInternalServerError)
+			return
+		}
+
+		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+		return
+	}
 
 	err = q.DeleteMateria(r.Context(), idMateria)
 	if err != nil {

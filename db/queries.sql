@@ -136,14 +136,6 @@ FROM horas_trabajadas
 WHERE timestamp_inicio >= $1 AND timestamp_inicio <= $2
 ORDER BY timestamp_inicio DESC;
 
--- name: UpdateHorasTrabajadas :one
-UPDATE horas_trabajadas
-SET 
-    timestamp_inicio = $2,
-    timestamp_fin = $3
-WHERE id_horas = $1
-RETURNING id_horas, id_tarea, timestamp_inicio, timestamp_fin;
-
 -- name: DeleteHorasTrabajadas :exec
 DELETE FROM horas_trabajadas
 WHERE id_horas = $1;

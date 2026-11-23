@@ -103,10 +103,10 @@ func main() {
 		handlers.GetListMateriasByUsuario(w, r, queries)
 	})
 	http.HandleFunc("PUT /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.PutUpdateMateria(w, r, queries)
+		handlers.PutUpdateMateria(w, r, queries, rdb)
 	})
 	http.HandleFunc("DELETE /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.DeleteMateria(w, r, queries)
+		handlers.DeleteMateria(w, r, queries, rdb)
 	})
 
 	// Tareas
@@ -126,10 +126,10 @@ func main() {
 		handlers.GetListTareasByRangoFechas(w, r, queries)
 	})
 	http.HandleFunc("PUT /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.PutUpdateTarea(w, r, queries)
+		handlers.PutUpdateTarea(w, r, queries, rdb)
 	})
 	http.HandleFunc("DELETE /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.DeleteTarea(w, r, queries)
+		handlers.DeleteTarea(w, r, queries, rdb)
 	})
 
 	// Horas
@@ -145,11 +145,8 @@ func main() {
 	http.HandleFunc("GET /horas/fechas", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetListHorasByRangoFechas(w, r, queries)
 	})
-	http.HandleFunc("PUT /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.PutUpdateHorasTrabajadas(w, r, queries)
-	})
 	http.HandleFunc("DELETE /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.DeleteHorasTrabajadas(w, r, queries)
+		handlers.DeleteHorasTrabajadas(w, r, queries, rdb)
 	})
 
 	// =========================================================================

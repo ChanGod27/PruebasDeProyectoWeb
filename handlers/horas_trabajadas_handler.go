@@ -173,42 +173,73 @@ func GetListHorasByRangoFechas(w http.ResponseWriter, r *http.Request, q *db.Que
 	json.NewEncoder(w).Encode(listaHoras)
 }
 
-func PutUpdateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	var HorasRecibidas db.UpdateHorasTrabajadasParams
-
-	err := json.NewDecoder(r.Body).Decode(&HorasRecibidas)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if HorasRecibidas.IDHoras <= 0 {
-		http.Error(w, "Todos los campos de ID son obligatorios", http.StatusBadRequest)
-		return
-	}
-
-	HorasActualizadas, err := q.UpdateHorasTrabajadas(r.Context(), HorasRecibidas)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(HorasActualizadas)
-}
-
-func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// DeleteHorasTrabajadas elimina un registro de horas trabajadas.
+// Si proviene de HTMX, valida sesión en Redis, verifica propiedad y devuelve el calendario actualizado.
+func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
 	parsed, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
+	if err != nil || parsed <= 0 {
 		http.Error(w, "El ID debe ser un número entero de 32 bits válido", http.StatusBadRequest)
 		return
 	}
-
 	idHoras := int32(parsed)
 
+	if r.Header.Get("HX-Request") == "true" {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		// Seguridad (ownership): confirmar que el registro de horas pertenezca a una tarea del usuario.
+		materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
+		if err != nil {
+			log.Printf("ERROR BD al validar propiedad de horas #%d: %v", idHoras, err)
+			http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
+			return
+		}
+
+		pertenece := false
+		for _, m := range materiasConTareas {
+			for _, t := range m.Tareas {
+				horas, err := q.ListHorasByTarea(r.Context(), t.IDTarea)
+				if err != nil {
+					log.Printf("ERROR BD al listar horas de tarea #%d: %v", t.IDTarea, err)
+					http.Error(w, "Error al validar permisos sobre el registro", http.StatusInternalServerError)
+					return
+				}
+				for _, h := range horas {
+					if h.IDHoras == idHoras {
+						pertenece = true
+						break
+					}
+				}
+				if pertenece {
+					break
+				}
+			}
+			if pertenece {
+				break
+			}
+		}
+
+		if !pertenece {
+			http.Error(w, "No tienes permiso para eliminar este registro de horas", http.StatusForbidden)
+			return
+		}
+
+		if err := q.DeleteHorasTrabajadas(r.Context(), idHoras); err != nil {
+			log.Printf("ERROR BD al eliminar horas #%d: %v", idHoras, err)
+			http.Error(w, "Error al eliminar el registro de horas", http.StatusInternalServerError)
+			return
+		}
+
+		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
+		return
+	}
+
+	// Caso API REST tradicional
 	err = q.DeleteHorasTrabajadas(r.Context(), idHoras)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)

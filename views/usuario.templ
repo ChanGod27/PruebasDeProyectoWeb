@@ -2,7 +2,6 @@ package views
 
 import (
 	"ServidorEntregable/db"
-	"fmt"
 )
 
 // =============================================================================
@@ -34,11 +33,7 @@ templ UsuarioContent(usuario db.Usuario) {
 	<!-- Tarjeta de Datos del Usuario Activo -->
 	<section class="users-container" style="max-width: 760px; margin: 0 auto;">
 		<article class="user-card active">
-			<!-- Etiqueta con el ID del usuario -->
-			<div class="user-id-badge">
-				<i class="fa-solid fa-user"></i>
-				<span>Usuario #{ fmt.Sprint(usuario.IDUsuario) }</span>
-			</div>
+			
 
 			<!-- Datos del Usuario: Nombre, Apellido y Email -->
 			<div class="user-card-body">

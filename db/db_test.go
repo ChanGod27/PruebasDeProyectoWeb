@@ -243,23 +243,7 @@ func testHorasTrabajadas(ctx context.Context, t *testing.T, q *Queries, idTarea 
 		t.Fatalf("ListHorasByRangoFechas esperaba al menos 1 resultado, obtuvo 0")
 	}
 
-	// Update
-	finSesionCorregido := finSesion.Add(30 * time.Minute).Truncate(time.Second)
-	updateParams := UpdateHorasTrabajadasParams{
-		IDHoras:         horas.IDHoras,
-		TimestampInicio: horas.TimestampInicio,
-		TimestampFin:    pgtype.Timestamp{Time: finSesionCorregido, Valid: true},
-	}
-	horasActualizadas, err := q.UpdateHorasTrabajadas(ctx, updateParams)
-	if err != nil {
-		t.Fatalf("UpdateHorasTrabajadas falló: %v", err)
-	}
-	if horasActualizadas.TimestampFin.Time.Unix() != finSesionCorregido.Unix() {
-		t.Fatalf("UpdateHorasTrabajadas inconsistente: esperado %v, obtenido %v",
-			finSesionCorregido, horasActualizadas.TimestampFin.Time)
-	}
-
-	return horasActualizadas
+	return horas
 }
 
 func testLimpieza(ctx context.Context, t *testing.T, q *Queries, idHoras int32, idTarea int32, idLista int32, idUsuario int32) {
