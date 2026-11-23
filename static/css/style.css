@@ -7,6 +7,8 @@
    1. VARIABLES CSS (CUSTOM PROPERTIES)
    -------------------------------------------------------------------------- */
 :root {
+  color-scheme: dark;
+
   /* Paleta de colores Dark Mode */
   --color-bg: #0f1115;
   --color-header-bg: rgba(20, 22, 29, 0.92);
@@ -76,6 +78,7 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
@@ -554,6 +557,22 @@ body {
 
 .timer-field::placeholder {
   color: var(--color-text-dim);
+}
+
+select,
+select.timer-field,
+select.form-control {
+  color-scheme: dark;
+  background-color: #13151b;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+select option,
+select.timer-field option,
+select.form-control option {
+  background-color: #191b22 !important;
+  color: #ffffff !important;
 }
 
 .timer-clock-box {
