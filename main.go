@@ -29,12 +29,7 @@ func main() {
 	// Instanciar objeto de la base de datos (userRepository)
 	queries := db.New(conn)
 
-	// =========================================================================
-	// AGREGADO PARA REDIS: INICIALIZACIÓN DEL CLIENTE DE SESIONES
-	// =========================================================================
-	// Conecta al servidor Redis en localhost:6379 para almacenar sesiones activas.
-	// Si Redis no está levantado, muestra una advertencia en consola sin detener
-	// el arranque del resto del servidor HTTP.
+	// Conecta a la instancia Redis en localhost:6379.
 	rdb, errRedis := db.AbrirRedis(ctx, "localhost:6379")
 	if errRedis != nil {
 		fmt.Printf("ADVERTENCIA: no se pudo conectar a Redis (sesiones deshabilitadas): %v\n", errRedis)
@@ -43,10 +38,9 @@ func main() {
 		defer rdb.Close()
 	}
 
-	// Servidor de archivos estáticos (CSS, íconos, etc.)
+	// Servidor de archivos estáticos
 	staticDir := "./static"
 	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("./static/css"))))
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
 
 	// ==========================================
 	// VISTAS TEMPL (HTML/CSS NATIVO)
@@ -88,20 +82,12 @@ func main() {
 	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateUsuario(w, r, queries)
 	})
-	http.HandleFunc("GET /usuarios/email/{email}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetUserByEmail(w, r, queries)
-	})
-	http.HandleFunc("GET /usuarios/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetUserById(w, r, queries)
-	})
 
 	// Materias
 	http.HandleFunc("POST /materias", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateMateria(w, r, queries, rdb)
 	})
-	http.HandleFunc("GET /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetListMateriasByUsuario(w, r, queries)
-	})
+
 	http.HandleFunc("PUT /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.PutUpdateMateria(w, r, queries, rdb)
 	})
@@ -116,15 +102,7 @@ func main() {
 	http.HandleFunc("POST /tareas/{id}/completar", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CompletarTarea(w, r, queries, rdb)
 	})
-	http.HandleFunc("GET /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetTareaById(w, r, queries)
-	})
-	http.HandleFunc("GET /tareas/materia/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetListTareasByMateria(w, r, queries)
-	})
-	http.HandleFunc("GET /tareas/fechas", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetListTareasByRangoFechas(w, r, queries)
-	})
+
 	http.HandleFunc("PUT /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.PutUpdateTarea(w, r, queries, rdb)
 	})
@@ -133,18 +111,10 @@ func main() {
 	})
 
 	// Horas
-	http.HandleFunc("POST /horas", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreateHorasTrabajadas(w, r, queries, rdb)
-	})
 	http.HandleFunc("POST /horas_trabajadas", func(w http.ResponseWriter, r *http.Request) {
 		handlers.CreateHorasTrabajadas(w, r, queries, rdb)
 	})
-	http.HandleFunc("GET /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetListHorasByTarea(w, r, queries)
-	})
-	http.HandleFunc("GET /horas/fechas", func(w http.ResponseWriter, r *http.Request) {
-		handlers.GetListHorasByRangoFechas(w, r, queries)
-	})
+
 	http.HandleFunc("DELETE /horas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.DeleteHorasTrabajadas(w, r, queries, rdb)
 	})

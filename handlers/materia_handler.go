@@ -4,7 +4,6 @@ import (
 	"ServidorEntregable/db"
 	"ServidorEntregable/views"
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -52,28 +51,6 @@ func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 		return
 	}
-}
-
-func GetListMateriasByUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	idStr := r.PathValue("id")
-
-	id64, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
-		http.Error(w, "ID de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	id := int32(id64)
-
-	listaMateria, err := q.ListMateriasByUsuario(r.Context(), id)
-	if err != nil {
-		http.Error(w, "Usuario para listar materias no encontrado", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(listaMateria)
 }
 
 // PutUpdateMateria actualiza el título de una materia.

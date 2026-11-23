@@ -3,21 +3,14 @@ package handlers
 import (
 	"ServidorEntregable/db"
 	"ServidorEntregable/views"
-	"encoding/json"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/redis/go-redis/v9"
 )
 
-// ==========================================
-// OPERACIONES DE USUARIO (API Y VISTAS TEMPL)
-// ==========================================
-
-// CreateUsuario procesa la creación de usuario. Soporta tanto el envío desde
-// formulario HTML/HTMX (volviendo a /login para iniciar sesión) como JSON (API REST).
+// CreateUsuario procesa la creación de usuario.
 func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	var newUsuario db.CreateUserParams
 
@@ -64,51 +57,6 @@ func CreateUsuario(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 		return
 	}
 }
-
-func GetUserByEmail(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	email := r.PathValue("email")
-
-	if strings.TrimSpace(email) == "" {
-		http.Error(w, "El email no puede estar vacío", http.StatusBadRequest)
-		return
-	}
-
-	newUsuario, err := q.GetUserByEmail(r.Context(), email)
-	if err != nil {
-		http.Error(w, "Usuario no encontrado", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(newUsuario)
-}
-
-func GetUserById(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	idStr := r.PathValue("id")
-
-	id64, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
-		http.Error(w, "ID de usuario inválido", http.StatusBadRequest)
-		return
-	}
-
-	id := int32(id64)
-
-	newUsuario, err := q.GetUserByID(r.Context(), id)
-	if err != nil {
-		http.Error(w, "Usuario no encontrado", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(newUsuario)
-}
-
-// ==========================================
-// CONTROLADORES DE VISTAS (RENDER TEMPL)
-// ==========================================
 
 // CreateUsuarioView renderiza el formulario para añadir un nuevo usuario (soporta carga completa y HTMX)
 func CreateUsuarioView(w http.ResponseWriter, r *http.Request) {

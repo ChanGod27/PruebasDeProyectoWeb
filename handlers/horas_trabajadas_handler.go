@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"ServidorEntregable/db"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -93,60 +92,6 @@ func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 		renderCalendarioActualizado(w, r, q, rdb, idUsuario)
 		return
 	}
-}
-
-func GetListHorasByTarea(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	idStr := r.PathValue("id")
-
-	id64, err := strconv.ParseInt(idStr, 10, 32)
-	if err != nil {
-		http.Error(w, "ID de tarea inválido", http.StatusBadRequest)
-		return
-	}
-
-	id := int32(id64)
-
-	listaHoras, err := q.ListHorasByTarea(r.Context(), id)
-	if err != nil {
-		http.Error(w, "Tarea para listar horas no encontrada", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(listaHoras)
-}
-
-func GetListHorasByRangoFechas(w http.ResponseWriter, r *http.Request, q *db.Queries) {
-	TimestampInicio := r.URL.Query().Get("FechaInicio")
-	TimestampInicio_2 := r.URL.Query().Get("FechaInicio_2")
-
-	timestampInicio, err := time.Parse(time.RFC3339, TimestampInicio)
-	if err != nil {
-		http.Error(w, "Timestamp de inicio inválida", http.StatusBadRequest)
-		return
-	}
-
-	timestampInicio_2, err := time.Parse(time.RFC3339, TimestampInicio_2)
-	if err != nil {
-		http.Error(w, "Timestamp de inicio_2 inválida", http.StatusBadRequest)
-		return
-	}
-
-	params := db.ListHorasByRangoFechasParams{
-		TimestampInicio:   pgtype.Timestamp{Time: timestampInicio, Valid: true},
-		TimestampInicio_2: pgtype.Timestamp{Time: timestampInicio_2, Valid: true},
-	}
-
-	listaHoras, err := q.ListHorasByRangoFechas(r.Context(), params)
-	if err != nil {
-		http.Error(w, "Horas en rango de fechas no encontradas", http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(listaHoras)
 }
 
 // DeleteHorasTrabajadas elimina un registro de horas trabajadas.
