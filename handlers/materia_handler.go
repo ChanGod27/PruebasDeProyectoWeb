@@ -17,9 +17,45 @@ import (
 // OPERACIONES DE MATERIA (db.ListaTarea)
 // ==========================================
 
-func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries) {
+// CreateMateria procesa la creación de una materia. Soporta formulario HTML/HTMX
+// (tomando el IDUsuario desde la sesión en Redis) y JSON (API REST).
+func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	var newMateria db.CreateMateriaParams
 
+	// 1. Caso envío desde Formulario HTML o HTMX (#materia-modal en materias.templ)
+	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
+		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+		if err != nil {
+			RedirigirSinSesion(w, r)
+			return
+		}
+
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "Error al procesar el formulario de materia", http.StatusBadRequest)
+			return
+		}
+
+		titulo := strings.TrimSpace(r.FormValue("titulo"))
+		if titulo == "" {
+			http.Error(w, "El nombre de la materia es obligatorio", http.StatusBadRequest)
+			return
+		}
+
+		_, err = q.CreateMateria(r.Context(), db.CreateMateriaParams{
+			IDUsuario: idUsuario,
+			Titulo:    titulo,
+		})
+		if err != nil {
+			log.Printf("ERROR BD al crear materia para usuario #%d: %v", idUsuario, err)
+			http.Error(w, "Error al crear la materia", http.StatusInternalServerError)
+			return
+		}
+
+		renderMateriasActualizadas(w, r, q, rdb, idUsuario)
+		return
+	}
+
+	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
 	err := json.NewDecoder(r.Body).Decode(&newMateria)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -137,17 +173,23 @@ func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32
 	return resultado, nil
 }
 
-// MateriasView renderiza el tablero de materias y tareas del usuario activo en Redis.
-// Soporta navegación interna con HTMX (MateriasContent) y carga completa / F5 (MateriasPage).
-func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	// 1. Verificar sesión activa en Redis.
-	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+// materiaPerteneceAUsuario verifica que una materia (id_lista) exista y pertenezca al usuario activo.
+func materiaPerteneceAUsuario(ctx context.Context, q *db.Queries, idLista int32, idUsuario int32) (bool, error) {
+	materias, err := q.ListMateriasByUsuario(ctx, idUsuario)
 	if err != nil {
-		RedirigirSinSesion(w, r)
-		return
+		return false, err
 	}
+	for _, m := range materias {
+		if m.IDLista == idLista {
+			return true, nil
+		}
+	}
+	return false, nil
+}
 
-	// 2. Cargar las materias del usuario junto con sus tareas pendientes y completadas.
+// renderMateriasActualizadas recarga el tablero del usuario y responde con el fragmento
+// HTMX (MateriasContent) o la página completa (MateriasPage) según el header HX-Request.
+func renderMateriasActualizadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client, idUsuario int32) {
 	materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al cargar materias del usuario #%d: %v", idUsuario, err)
@@ -155,14 +197,12 @@ func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *re
 		return
 	}
 
-	// 3. Si la petición vino por HTMX, devolver solo el fragmento interno (#main-content).
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if r.Header.Get("HX-Request") == "true" {
 		views.MateriasContent(materiasConTareas).Render(r.Context(), w)
 		return
 	}
 
-	// 4. Si es carga directa o F5, buscar los datos del usuario para el header de LayoutBase.
 	uRow, err := q.GetUserByID(r.Context(), idUsuario)
 	if err != nil {
 		log.Printf("ERROR BD al obtener usuario activo #%d: %v", idUsuario, err)
@@ -179,4 +219,16 @@ func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *re
 	}
 
 	views.MateriasPage(usuario, materiasConTareas).Render(r.Context(), w)
+}
+
+// MateriasView renderiza el tablero de materias y tareas del usuario activo en Redis.
+// Soporta navegación interna con HTMX (MateriasContent) y carga completa / F5 (MateriasPage).
+func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
+		return
+	}
+
+	renderMateriasActualizadas(w, r, q, rdb, idUsuario)
 }

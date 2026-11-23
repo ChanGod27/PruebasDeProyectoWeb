@@ -92,7 +92,7 @@ func main() {
 
 	// Materias
 	http.HandleFunc("POST /materias", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreateMateria(w, r, queries)
+		handlers.CreateMateria(w, r, queries, rdb)
 	})
 	http.HandleFunc("GET /materias/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetListMateriasByUsuario(w, r, queries)
@@ -106,7 +106,10 @@ func main() {
 
 	// Tareas
 	http.HandleFunc("POST /tareas", func(w http.ResponseWriter, r *http.Request) {
-		handlers.CreateTarea(w, r, queries)
+		handlers.CreateTarea(w, r, queries, rdb)
+	})
+	http.HandleFunc("POST /tareas/{id}/completar", func(w http.ResponseWriter, r *http.Request) {
+		handlers.CompletarTarea(w, r, queries, rdb)
 	})
 	http.HandleFunc("GET /tareas/{id}", func(w http.ResponseWriter, r *http.Request) {
 		handlers.GetTareaById(w, r, queries)

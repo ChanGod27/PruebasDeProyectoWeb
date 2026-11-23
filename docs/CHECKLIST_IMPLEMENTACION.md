@@ -113,13 +113,13 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
   - Chequear `r.Header.Get("HX-Request") == "true"`:
     - Si es `true` → `views.MateriasContent(materiasConTareas)`.
     - Si es `false` → consultar `q.GetUserByID` para obtener el nombre del usuario para la barra superior y renderizar `views.MateriasPage(usuario, materiasConTareas)`.
-- [ ] **4.3. Adaptar `CreateMateria` (`POST /materias`) para soportar formularios HTMX**
+- [x] **4.3. Adaptar `CreateMateria` (`POST /materias`) para soportar formularios HTMX**
   - Detectar `strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded")` (manteniendo la rama JSON existente).
   - En la rama formulario/HTMX:
     - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion` (sacar `IDUsuario` siempre de Redis, nunca de un input).
     - Leer `titulo := strings.TrimSpace(r.FormValue("titulo"))`, validar que no esté vacío y llamar a `q.CreateMateria(...)`.
     - Recargar `cargarMateriasConTareas` y renderizar `views.MateriasContent(materiasConTareas)` (o `MateriasPage` si no vino `HX-Request`).
-- [ ] **4.4. Adaptar `CreateTarea` (`POST /tareas`) para soportar formularios HTMX**
+- [x] **4.4. Adaptar `CreateTarea` (`POST /tareas`) para soportar formularios HTMX**
   - Detectar `application/x-www-form-urlencoded` (manteniendo la rama JSON existente).
   - En la rama formulario/HTMX:
     - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion`.
@@ -127,7 +127,7 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
     - **Seguridad (ownership):** verificar que la materia `id_lista` exista y pertenezca a `idUsuario` antes de insertar la tarea.
     - Parsear las fechas de `<input type="datetime-local">` usando el layout `"2006-01-02T15:04"` (si no vienen vacías) a `pgtype.Timestamp`.
     - Llamar a `q.CreateTarea(...)`, recargar `cargarMateriasConTareas` y renderizar `views.MateriasContent(materiasConTareas)`.
-- [ ] **4.5. Crear `CompletarTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `POST /tareas/{id}/completar`**
+- [x] **4.5. Crear `CompletarTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `POST /tareas/{id}/completar`**
   - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion`.
   - Parsear `{id}` con `r.PathValue("id")` y consultar la tarea con `q.GetTareaByID`.
   - **Seguridad (ownership):** verificar que la materia de esa tarea pertenezca a `idUsuario`.
