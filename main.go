@@ -73,6 +73,11 @@ func main() {
 		handlers.UsuarioView(w, r, queries, rdb)
 	})
 
+	// Tablero de materias y tareas (materias.templ)
+	http.HandleFunc("GET /materias", func(w http.ResponseWriter, r *http.Request) {
+		handlers.MateriasView(w, r, queries, rdb)
+	})
+
 	// Handlers que conectan las operaciones crud
 	// Usuarios
 	http.HandleFunc("POST /usuarios", func(w http.ResponseWriter, r *http.Request) {

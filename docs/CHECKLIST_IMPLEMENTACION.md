@@ -102,12 +102,12 @@ Este documento resume el estado actual del proyecto y ordena, paso a paso, todo 
 
 ### Fase 4 — Materias y Tareas (`handlers/materia_handler.go` y `handlers/tarea_handler.go`)
 
-- [ ] **4.1. Crear helper interno para armar el tablero (en `handlers/materia_handler.go`)**
+- [x] **4.1. Crear helper interno para armar el tablero (en `handlers/materia_handler.go`)**
   - Escribir una función auxiliar `cargarMateriasConTareas(ctx, q, idUsuario) ([]views.MateriaConTareas, error)` que:
     1. Llame a `q.ListMateriasByUsuario(ctx, idUsuario)`.
     2. Por cada materia (`db.ListaTarea`), llame a `q.ListTareasByMateria(ctx, m.IDLista)`.
     3. Devuelva el slice `[]views.MateriaConTareas`.
-- [ ] **4.2. Crear `MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /materias`**
+- [x] **4.2. Crear `MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client)` para `GET /materias`**
   - Validar sesión con `ObtenerUsuarioIDRedis` + `RedirigirSinSesion`.
   - Llamar a `cargarMateriasConTareas(r.Context(), q, idUsuario)`.
   - Chequear `r.Header.Get("HX-Request") == "true"`:

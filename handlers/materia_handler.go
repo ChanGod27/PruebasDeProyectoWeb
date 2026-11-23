@@ -2,10 +2,15 @@ package handlers
 
 import (
 	"ServidorEntregable/db"
+	"ServidorEntregable/views"
+	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // ==========================================
@@ -103,4 +108,75 @@ func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// ==========================================
+// CONTROLADORES DE VISTAS (MATERIAS + HTMX)
+// ==========================================
+
+// cargarMateriasConTareas consulta todas las materias del usuario y sus respectivas
+// tareas para armar el tablero Kanban de la vista materias.templ.
+func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32) ([]views.MateriaConTareas, error) {
+	materias, err := q.ListMateriasByUsuario(ctx, idUsuario)
+	if err != nil {
+		return nil, err
+	}
+
+	resultado := make([]views.MateriaConTareas, 0, len(materias))
+	for _, m := range materias {
+		tareas, err := q.ListTareasByMateria(ctx, m.IDLista)
+		if err != nil {
+			return nil, err
+		}
+		resultado = append(resultado, views.MateriaConTareas{
+			Materia: m,
+			Tareas:  tareas,
+		})
+	}
+
+	return resultado, nil
+}
+
+// MateriasView renderiza el tablero de materias y tareas del usuario activo en Redis.
+// Soporta navegación interna con HTMX (MateriasContent) y carga completa / F5 (MateriasPage).
+func MateriasView(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
+	// 1. Verificar sesión activa en Redis.
+	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
+	if err != nil {
+		RedirigirSinSesion(w, r)
+		return
+	}
+
+	// 2. Cargar las materias del usuario junto con sus tareas pendientes y completadas.
+	materiasConTareas, err := cargarMateriasConTareas(r.Context(), q, idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al cargar materias del usuario #%d: %v", idUsuario, err)
+		http.Error(w, "Error al cargar las materias", http.StatusInternalServerError)
+		return
+	}
+
+	// 3. Si la petición vino por HTMX, devolver solo el fragmento interno (#main-content).
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if r.Header.Get("HX-Request") == "true" {
+		views.MateriasContent(materiasConTareas).Render(r.Context(), w)
+		return
+	}
+
+	// 4. Si es carga directa o F5, buscar los datos del usuario para el header de LayoutBase.
+	uRow, err := q.GetUserByID(r.Context(), idUsuario)
+	if err != nil {
+		log.Printf("ERROR BD al obtener usuario activo #%d: %v", idUsuario, err)
+		CerrarSesionRedis(r.Context(), w, r, rdb)
+		RedirigirSinSesion(w, r)
+		return
+	}
+
+	usuario := db.Usuario{
+		IDUsuario: uRow.IDUsuario,
+		Nombre:    uRow.Nombre,
+		Apellido:  uRow.Apellido,
+		Email:     uRow.Email,
+	}
+
+	views.MateriasPage(usuario, materiasConTareas).Render(r.Context(), w)
 }
