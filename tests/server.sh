@@ -31,6 +31,27 @@ wait_for_db() {
     return 0
 }
 
+# Función para esperar que Redis esté listo
+wait_for_redis() {
+    echo "Verificando estado de Redis..."
+    local attempts=0
+    local max_attempts=30
+
+    while [ $attempts -lt $max_attempts ]; do
+        if docker compose exec -T redis redis-cli ping >/dev/null 2>&1 \
+           || [ "$(docker inspect -f '{{.State.Health.Status}}' "$(docker compose ps -q redis 2>/dev/null)" 2>/dev/null)" = "healthy" ]; then
+            echo "✓ Redis listo para aceptar conexiones."
+            return 0
+        fi
+        sleep 1
+        attempts=$((attempts + 1))
+    done
+
+    echo "⚠ Advertencia: Se agotó el tiempo esperando el healthcheck de Redis."
+    echo "Intentando continuar con el arranque del servidor..."
+    return 0
+}
+
 start_server() {
     mkdir -p bin
 
@@ -47,15 +68,16 @@ start_server() {
         fi
     fi
 
-    # 2. Iniciar base de datos
-    echo "1. Asegurando que la base de datos esté activa..."
+    # 2. Iniciar base de datos y Redis
+    echo "1. Asegurando que la base de datos (PostgreSQL) y Redis estén activos..."
     if ! docker info >/dev/null 2>&1; then
         echo "Error: Docker no está en ejecución o no se tienen permisos para acceder al socket de Docker."
         exit 1
     fi
 
-    docker compose up -d db
+    docker compose up -d db redis
     wait_for_db
+    wait_for_redis
 
     # 3a. Generar código con sqlc
     if command -v sqlc >/dev/null 2>&1; then
@@ -174,6 +196,14 @@ status_server() {
     # Base de datos
     echo -n "Base de datos (Postgres): "
     if docker compose ps db 2>/dev/null | grep -q "Up"; then
+        echo "ACTIVA"
+    else
+        echo "DETENIDA"
+    fi
+
+    # Redis
+    echo -n "Sesiones (Redis): "
+    if docker compose ps redis 2>/dev/null | grep -q "Up"; then
         echo "ACTIVA"
     else
         echo "DETENIDA"
