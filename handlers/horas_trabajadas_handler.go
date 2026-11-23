@@ -25,8 +25,6 @@ func parseTimestampISO(valor string) (pgtype.Timestamp, error) {
 	return pgtype.Timestamp{Time: t.In(time.Local), Valid: true}, nil
 }
 
-// CreateHorasTrabajadas registra una sesión del cronómetro. Soporta formulario HTML/HTMX
-// (#timer-save-form en calendario.templ, validando sesión y propiedad) y JSON (API REST).
 func CreateHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
@@ -160,12 +158,4 @@ func DeleteHorasTrabajadas(w http.ResponseWriter, r *http.Request, q *db.Queries
 		return
 	}
 
-	// Caso API REST tradicional
-	err = q.DeleteHorasTrabajadas(r.Context(), idHoras)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }

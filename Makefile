@@ -1,7 +1,4 @@
-.PHONY: test clean generate start stop stop-all restart status logs
-
-test:
-	./tests/test.sh
+.PHONY: clean generate start stop stop-all restart status logs
 
 clean:
 	docker compose down -v --remove-orphans

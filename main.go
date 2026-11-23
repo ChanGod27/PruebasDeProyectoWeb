@@ -126,10 +126,6 @@ func main() {
 	http.HandleFunc("GET /logout", func(w http.ResponseWriter, r *http.Request) {
 		handlers.LogoutRedisHandler(w, r, rdb)
 	})
-	// GET /sesion/estado: devuelve un JSON indicando si la cookie actual tiene sesión válida en Redis.
-	http.HandleFunc("GET /sesion/estado", func(w http.ResponseWriter, r *http.Request) {
-		handlers.SessionStatusRedisHandler(w, r, rdb)
-	})
 
 	port := ":8080"
 	fmt.Printf("Servidor ESTÁTICO escuchando en http://localhost%s\n", port)

@@ -12,7 +12,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -33,13 +32,6 @@ const (
 
 // errRedisNoDisponible se devuelve cuando el cliente *redis.Client es nil (ej. Redis apagado al iniciar).
 var errRedisNoDisponible = errors.New("cliente Redis no inicializado")
-
-// estadoSesionResponse define la estructura JSON devuelta por SessionStatusRedisHandler.
-type estadoSesionResponse struct {
-	Autenticado bool   `json:"autenticado"`
-	IDUsuario   int32  `json:"id_usuario"`
-	Error       string `json:"error,omitempty"`
-}
 
 // CrearSesionRedis genera un token aleatorio criptográficamente seguro, lo guarda
 // en Redis asociado al idUsuario con un TTL de 24 horas y envía la cookie HttpOnly al cliente.
@@ -157,39 +149,4 @@ func LogoutRedisHandler(w http.ResponseWriter, r *http.Request, rdb *redis.Clien
 	}
 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
-}
-
-// SessionStatusRedisHandler atiende la ruta GET /sesion/estado:
-// verifica en Redis si hay una sesión activa y devuelve un JSON con "autenticado"
-// e "id_usuario" para facilitar pruebas rápidas desde curl, Hurl o el navegador.
-func SessionStatusRedisHandler(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
-	w.Header().Set("Content-Type", "application/json")
-
-	// Si Redis no fue inicializado, informamos el estado sin romper el servidor.
-	if rdb == nil {
-		w.WriteHeader(http.StatusServiceUnavailable)
-		_ = json.NewEncoder(w).Encode(estadoSesionResponse{
-			Autenticado: false,
-			IDUsuario:   0,
-			Error:       errRedisNoDisponible.Error(),
-		})
-		return
-	}
-
-	// Consulta si la cookie actual corresponde a una sesión válida en Redis.
-	idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
-	if err != nil {
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(estadoSesionResponse{
-			Autenticado: false,
-			IDUsuario:   0,
-		})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(estadoSesionResponse{
-		Autenticado: true,
-		IDUsuario:   idUsuario,
-	})
 }

@@ -84,12 +84,6 @@ FROM tarea
 WHERE id_lista = $1
 ORDER BY id_tarea ASC;
 
--- name: ListTareasByRangoFechas :many
--- Para pintar el calendario entre dos fechas
-SELECT id_tarea, id_lista, titulo, fecha_inicio, fecha_finalizacion, descripcion, completada
-FROM tarea
-WHERE fecha_finalizacion >= $1 AND fecha_finalizacion <= $2
-ORDER BY fecha_finalizacion ASC;
 
 -- name: UpdateTarea :one
 -- Update común y corriente: le pasás todos los valores actualizados
@@ -127,13 +121,6 @@ RETURNING id_horas, id_tarea, timestamp_inicio, timestamp_fin;
 SELECT id_horas, id_tarea, timestamp_inicio, timestamp_fin
 FROM horas_trabajadas
 WHERE id_tarea = $1
-ORDER BY timestamp_inicio DESC;
-
--- name: ListHorasByRangoFechas :many
--- Para estadísticas o bloques en calendario
-SELECT id_horas, id_tarea, timestamp_inicio, timestamp_fin
-FROM horas_trabajadas
-WHERE timestamp_inicio >= $1 AND timestamp_inicio <= $2
 ORDER BY timestamp_inicio DESC;
 
 -- name: DeleteHorasTrabajadas :exec

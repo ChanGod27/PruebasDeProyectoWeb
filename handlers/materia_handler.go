@@ -12,12 +12,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// ==========================================
-// OPERACIONES DE MATERIA (db.ListaTarea)
-// ==========================================
-
-// CreateMateria procesa la creación de una materia. Soporta formulario HTML/HTMX
-// (tomando el IDUsuario desde la sesión en Redis) y JSON (API REST).
 func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
@@ -53,8 +47,6 @@ func CreateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 	}
 }
 
-// PutUpdateMateria actualiza el título de una materia.
-// Soporta formulario HTMX (con sesión Redis y validación de propiedad) y JSON (API REST).
 func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
 		idUsuario, err := ObtenerUsuarioIDRedis(r.Context(), r, rdb)
@@ -107,8 +99,6 @@ func PutUpdateMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb
 	}
 }
 
-// DeleteMateria elimina una materia (y sus tareas/horas en cascada según schema.sql).
-// Si proviene de HTMX, valida sesión en Redis, verifica propiedad y devuelve el tablero actualizado.
 func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	idStr := r.PathValue("id")
 
@@ -148,21 +138,8 @@ func DeleteMateria(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *r
 		return
 	}
 
-	err = q.DeleteMateria(r.Context(), idMateria)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }
 
-// ==========================================
-// CONTROLADORES DE VISTAS (MATERIAS + HTMX)
-// ==========================================
-
-// cargarMateriasConTareas consulta todas las materias del usuario y sus respectivas
-// tareas para armar el tablero Kanban de la vista materias.templ.
 func cargarMateriasConTareas(ctx context.Context, q *db.Queries, idUsuario int32) ([]views.MateriaConTareas, error) {
 	materias, err := q.ListMateriasByUsuario(ctx, idUsuario)
 	if err != nil {

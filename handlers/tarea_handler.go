@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"ServidorEntregable/db"
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -32,7 +31,6 @@ func parseFechaDatetimeLocal(valor string) (pgtype.Timestamp, error) {
 // CreateTarea procesa la creación de una tarea. Soporta formulario HTML/HTMX
 // (#task-modal en materias.templ, validando sesión y propiedad en Redis) y JSON (API REST).
 func CreateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
-	var newTarea db.CreateTareaParams
 
 	// 1. Caso envío desde Formulario HTML o HTMX
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
@@ -103,31 +101,8 @@ func CreateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		return
 	}
 
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	err := json.NewDecoder(r.Body).Decode(&newTarea)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if strings.TrimSpace(newTarea.Titulo) == "" || newTarea.IDLista <= 0 {
-		http.Error(w, "Todos los campos son obligatorios y no pueden contener solo espacios", http.StatusBadRequest)
-		return
-	}
-
-	tareaCreada, err := q.CreateTarea(r.Context(), newTarea)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(tareaCreada)
 }
 
-// PutUpdateTarea actualiza los datos de una tarea.
-// Soporta formulario HTMX (con sesión Redis y validación de propiedad) y JSON (API REST).
 func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *redis.Client) {
 	// 1. Caso envío desde Formulario HTML o HTMX (#edit-task-{id} en materias.templ)
 	if strings.Contains(r.Header.Get("Content-Type"), "application/x-www-form-urlencoded") {
@@ -206,30 +181,6 @@ func PutUpdateTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *
 		return
 	}
 
-	// 2. Caso petición JSON (para API REST y pruebas automatizadas)
-	var TareaRecibida db.UpdateTareaParams
-
-	err := json.NewDecoder(r.Body).Decode(&TareaRecibida)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if strings.TrimSpace(TareaRecibida.Titulo) == "" ||
-		TareaRecibida.IDTarea <= 0 {
-		http.Error(w, "Todos los campos son obligatorios y no pueden contener solo espacios", http.StatusBadRequest)
-		return
-	}
-
-	TareaActualizada, err := q.UpdateTarea(r.Context(), TareaRecibida)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(TareaActualizada)
 }
 
 // DeleteTarea elimina una tarea (y sus horas trabajadas asociadas en cascada).
@@ -279,13 +230,6 @@ func DeleteTarea(w http.ResponseWriter, r *http.Request, q *db.Queries, rdb *red
 		return
 	}
 
-	err = q.DeleteTarea(r.Context(), idTarea)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
 }
 
 // CompletarTarea atiende POST /tareas/{id}/completar desde el checklist de materias.templ.
